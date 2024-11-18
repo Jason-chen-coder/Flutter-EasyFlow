@@ -1,0 +1,237 @@
+{
+  "elements": [
+    {
+      "positionDx": 514.5867187500004,
+      "positionDy": 120.90660807291687,
+      "size.width": 66.66666666666666,
+      "size.height": 33.33333333333333,
+      "text": "0",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 16.0,
+      "textIsBold": false,
+      "id": "a41deb83-5f1f-4618-819d-763757760a31",
+      "kind": 0,
+      "handlers": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "handlerSize": 16.666666666666664,
+      "backgroundColor": 4294967295,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 4.0,
+      "data": null,
+      "next": [
+        {
+          "destElementId": "efb23e63-5bb3-4bb0-9036-f01f2c3014d4",
+          "arrowParams": {
+            "thickness": 1.1333333333333333,
+            "headRadius": 4.0,
+            "tailLength": 16.666666666666664,
+            "color": 4278190080,
+            "style": 2,
+            "tension": 1.0,
+            "startArrowPositionX": 0.0,
+            "startArrowPositionY": 1.0,
+            "endArrowPositionX": 0.0,
+            "endArrowPositionY": -1.0
+          },
+          "pivots": []
+        }
+      ],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    },
+    {
+      "positionDx": 514.7333658854167,
+      "positionDy": 217.6399902343751,
+      "size.width": 66.66666666666666,
+      "size.height": 33.33333333333333,
+      "text": "1",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 16.0,
+      "textIsBold": false,
+      "id": "efb23e63-5bb3-4bb0-9036-f01f2c3014d4",
+      "kind": 0,
+      "handlers": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "handlerSize": 16.666666666666664,
+      "backgroundColor": 4294967295,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 4.0,
+      "data": null,
+      "next": [
+        {
+          "destElementId": "4ee2d3e4-6462-437f-ae07-af6a13617709",
+          "arrowParams": {
+            "thickness": 1.1333333333333333,
+            "headRadius": 4.0,
+            "tailLength": 16.666666666666664,
+            "color": 4278190080,
+            "style": 2,
+            "tension": 1.0,
+            "startArrowPositionX": 0.0,
+            "startArrowPositionY": 1.0,
+            "endArrowPositionX": 0.0,
+            "endArrowPositionY": -1.0
+          },
+          "pivots": []
+        }
+      ],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    },
+    {
+      "positionDx": 515.0533203125001,
+      "positionDy": 302.7466145833331,
+      "size.width": 66.66666666666666,
+      "size.height": 33.33333333333333,
+      "text": "2",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 16.0,
+      "textIsBold": false,
+      "id": "4ee2d3e4-6462-437f-ae07-af6a13617709",
+      "kind": 0,
+      "handlers": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "handlerSize": 16.666666666666664,
+      "backgroundColor": 4294967295,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 4.0,
+      "data": null,
+      "next": [
+        {
+          "destElementId": "a166b270-f8a4-4f38-a115-778b9ae4c50c",
+          "arrowParams": {
+            "thickness": 1.1333333333333333,
+            "headRadius": 4.0,
+            "tailLength": 16.666666666666664,
+            "color": 4278190080,
+            "style": 2,
+            "tension": 1.0,
+            "startArrowPositionX": 0.0,
+            "startArrowPositionY": 1.0,
+            "endArrowPositionX": 0.0,
+            "endArrowPositionY": -1.0
+          },
+          "pivots": []
+        }
+      ],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    },
+    {
+      "positionDx": 515.0267089843744,
+      "positionDy": 393.5332682291662,
+      "size.width": 66.66666666666666,
+      "size.height": 33.33333333333333,
+      "text": "3",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 16.0,
+      "textIsBold": false,
+      "id": "a166b270-f8a4-4f38-a115-778b9ae4c50c",
+      "kind": 0,
+      "handlers": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "handlerSize": 16.666666666666664,
+      "backgroundColor": 4294967295,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 4.0,
+      "data": null,
+      "next": [
+        {
+          "destElementId": "7cb27df0-c962-4f05-8678-8c7565733f96",
+          "arrowParams": {
+            "thickness": 1.1333333333333333,
+            "headRadius": 4.0,
+            "tailLength": 16.666666666666664,
+            "color": 4278190080,
+            "style": 2,
+            "tension": 1.0,
+            "startArrowPositionX": 0.0,
+            "startArrowPositionY": 1.0,
+            "endArrowPositionX": 0.0,
+            "endArrowPositionY": -1.0
+          },
+          "pivots": []
+        }
+      ],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    },
+    {
+      "positionDx": 515.1066731770832,
+      "positionDy": 502.2399902343749,
+      "size.width": 66.66666666666666,
+      "size.height": 33.33333333333333,
+      "text": "4",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 16.0,
+      "textIsBold": false,
+      "id": "7cb27df0-c962-4f05-8678-8c7565733f96",
+      "kind": 0,
+      "handlers": [
+        1,
+        0,
+        3,
+        2
+      ],
+      "handlerSize": 16.666666666666664,
+      "backgroundColor": 4294967295,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 4.0,
+      "data": null,
+      "next": [],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    }
+  ],
+  "dashboardSizeWidth": 1152.0,
+  "dashboardSizeHeight": 624.0,
+  "gridBackgroundParams": {
+    "offset.dx": 192.00000000000003,
+    "offset.dy": 104.00000000000001,
+    "scale": 0.6666666666666666,
+    "gridSquare": 20.0,
+    "gridThickness": 0.7,
+    "secondarySquareStep": 5,
+    "backgroundColor": 4294967295,
+    "gridColor": 520093696
+  },
+  "blockDefaultZoomGestures": false,
+  "minimumZoomFactor": 0.25,
+  "arrowStyle": 0
+}
