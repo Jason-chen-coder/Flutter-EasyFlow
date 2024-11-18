@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:diagram_flow/packages/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:star_menu/star_menu.dart';
 
 /// Popup menu for the 'element params" entry

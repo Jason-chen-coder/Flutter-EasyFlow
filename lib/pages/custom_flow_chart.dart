@@ -4,7 +4,7 @@ import './platforms/hooks_mobile.dart'
 if (dart.library.js) 'package:example/platforms/hooks_web.dart';
 import './text_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:diagram_flow/packages/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:star_menu/star_menu.dart';
 
 class CustomFlowChart extends StatefulWidget {
