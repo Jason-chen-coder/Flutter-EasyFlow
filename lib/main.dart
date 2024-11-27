@@ -50,7 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
     CustomFlowChart(),
   ];
   final List<String> _titles = ['Default Flow', 'Custom Flow'];
-  int _currentIndex = 0;
+  int _currentIndex = 1;
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;

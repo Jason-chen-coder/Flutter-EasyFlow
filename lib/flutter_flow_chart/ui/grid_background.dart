@@ -7,8 +7,9 @@ class GridBackgroundParams extends ChangeNotifier {
     double gridSquare = 20.0,
     this.gridThickness = 0.7,
     this.secondarySquareStep = 5,
-    this.backgroundColor = Colors.white,
-    this.gridColor = Colors.black12,
+    // 画布背景颜色
+    this.backgroundColor =  const Color(0xFFf8f8f8),
+    this.gridColor = Colors.red,
     void Function(double scale)? onScaleUpdate,
   }) : rawGridSquareSize = gridSquare {
     if (onScaleUpdate != null) {
@@ -58,7 +59,8 @@ class GridBackgroundParams extends ChangeNotifier {
 
   /// Add listener for scaling
   void addOnScaleUpdateListener(void Function(double scale) listener) {
-    _onScaleUpdateListeners.add(listener);
+      print("=addOnScaleUpdateListener===========>");
+      _onScaleUpdateListeners.add(listener);
   }
 
   /// Remove listener for scaling
@@ -83,6 +85,7 @@ class GridBackgroundParams extends ChangeNotifier {
     scale = factor;
 
     for (final listener in _onScaleUpdateListeners) {
+      print("============>setScale");
       listener(scale);
     }
     notifyListeners();
@@ -135,7 +138,6 @@ class GridBackground extends StatelessWidget {
     );
   }
 }
-
 class _GridBackgroundPainter extends CustomPainter {
   _GridBackgroundPainter({
     required this.params,
@@ -158,39 +160,26 @@ class _GridBackgroundPainter extends CustomPainter {
       paint,
     );
 
-    // grid
+    // Grid points
     paint.color = params.gridColor;
-    paint.style = PaintingStyle.stroke;
+    paint.style = PaintingStyle.fill;
 
     // Calculate the starting points for x and y
     final startX = dx % (params.gridSquare * params.secondarySquareStep);
     final startY = dy % (params.gridSquare * params.secondarySquareStep);
 
     // Calculate the number of lines to draw outside the visible area
-    const extraLines = 2;
+    const extraLines = 4;
 
-    // Draw vertical lines
+    // Draw points at grid intersections
     for (var x = startX - extraLines * params.gridSquare;
-        x < size.width + extraLines * params.gridSquare;
-        x += params.gridSquare) {
-      paint.strokeWidth = ((x - startX) / params.gridSquare).round() %
-                  params.secondarySquareStep ==
-              0
-          ? params.gridThickness * 2.0
-          : params.gridThickness;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-
-    // Draw horizontal lines
-    for (var y = startY - extraLines * params.gridSquare;
-        y < size.height + extraLines * params.gridSquare;
-        y += params.gridSquare) {
-      paint.strokeWidth = ((y - startY) / params.gridSquare).round() %
-                  params.secondarySquareStep ==
-              0
-          ? params.gridThickness * 2.0
-          : params.gridThickness;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    x < size.width + extraLines * params.gridSquare;
+    x += params.gridSquare) {
+      for (var y = startY - extraLines * params.gridSquare;
+      y < size.height + extraLines * params.gridSquare;
+      y += params.gridSquare) {
+        canvas.drawCircle(Offset(x, y), 1, paint);
+      }
     }
   }
 

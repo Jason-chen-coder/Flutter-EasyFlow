@@ -8,7 +8,7 @@ class HandlerWidget extends StatelessWidget {
     required this.height,
     super.key,
     this.backgroundColor = Colors.white,
-    this.borderColor = Colors.blue,
+    this.borderColor = Colors.white,
     this.icon,
   });
 
@@ -38,7 +38,7 @@ class HandlerWidget extends StatelessWidget {
           Radius.circular(width),
         ),
         border: Border.all(
-          width: 2,
+          width: width ==0 ? 0 :1,
           color: borderColor,
         ),
       ),

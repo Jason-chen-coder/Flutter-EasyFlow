@@ -1,6 +1,11 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import './segment_handler.dart';
 
 /// Arrow style enumeration
@@ -20,10 +25,10 @@ enum ArrowStyle {
 class ArrowParams extends ChangeNotifier {
   ///
   ArrowParams({
-    this.thickness = 1.7,
-    this.headRadius = 6,
+    this.thickness = 2,
+    this.headRadius = 3,
     double tailLength = 25.0,
-    this.color = Colors.black,
+    this.color = const Color(0xFF999999),
     this.style,
     this.tension = 1.0,
     this.startArrowPosition = Alignment.centerRight,
@@ -34,7 +39,7 @@ class ArrowParams extends ChangeNotifier {
   factory ArrowParams.fromMap(Map<String, dynamic> map) {
     return ArrowParams(
       thickness: map['thickness'] as double,
-      headRadius: map['headRadius'] as double? ?? 6.0,
+      headRadius: map['headRadius'] as double? ?? 4.0,
       tailLength: map['tailLength'] as double? ?? 25.0,
       color: Color(map['color'] as int),
       style: ArrowStyle.values[map['style'] as int? ?? 0],
@@ -118,10 +123,10 @@ class ArrowParams extends ChangeNotifier {
   String toJson() => json.encode(toMap());
 
   ///
-  void setScale(double currentZoom, double factor) {
-    thickness = thickness / currentZoom * factor;
-    headRadius = headRadius / currentZoom * factor;
-    _tailLength = _tailLength / currentZoom * factor;
+  void setScale(double scale) {
+    thickness = thickness * scale;
+    headRadius = headRadius * scale;
+    _tailLength = _tailLength * scale;
     notifyListeners();
   }
 
@@ -252,20 +257,21 @@ class _DrawArrowState extends State<DrawArrow> {
           (widget.destElement.size.height *
               ((widget.arrowParams.endArrowPosition.y + 1) / 2)),
     );
-
     return RepaintBoundary(
-      child: Builder(
-        builder: (context) {
-          return CustomPaint(
+      child: Stack(
+        children: [
+          CustomPaint(
             painter: ArrowPainter(
               params: widget.arrowParams,
               from: from,
               to: to,
               pivots: widget.pivots.value,
+              srcElement:widget.srcElement,
+              destElement:widget.destElement,
             ),
             child: Container(),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -281,7 +287,11 @@ class ArrowPainter extends CustomPainter {
     required this.from,
     required this.to,
     List<Pivot>? pivots,
-  }) : pivots = pivots ?? [];
+    FlowElement? srcElement,
+    FlowElement? destElement,
+  }) :  pivots = pivots ?? [],
+        srcElement =srcElement ?? FlowElement(),
+        destElement = destElement ?? FlowElement();
 
   ///
   final ArrowParams params;
@@ -301,10 +311,14 @@ class ArrowPainter extends CustomPainter {
   ///
   final List<Pivot> pivots;
 
+  late FlowElement srcElement ;
+  late FlowElement destElement ;
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..strokeWidth = params.thickness;
-
+    final paint = Paint()
+      ..strokeWidth = params.thickness // 设置画笔的宽度
+      ..color = const Color(0xFF4f5158);
+    // 绘制连线
     if (params.style == ArrowStyle.curve) {
       drawCurve(canvas, paint);
     } else if (params.style == ArrowStyle.segmented) {
@@ -313,7 +327,13 @@ class ArrowPainter extends CustomPainter {
       drawRectangularLine(canvas, paint);
     }
 
-    canvas.drawCircle(to, params.headRadius, paint);
+    // 绘制连线的锚点
+    if (srcElement.taskType != TaskType.plus) {
+      canvas.drawCircle(from, params.headRadius, paint);
+    }
+    if(destElement.taskType != TaskType.plus){
+      canvas.drawCircle(to, params.headRadius, paint);
+    }
 
     paint
       ..color = params.color
@@ -350,20 +370,30 @@ class ArrowPainter extends CustomPainter {
   /// Draw a rectangular line
   void drawRectangularLine(Canvas canvas, Paint paint) {
     // calculating offsetted pivot
+
+    // var startVerticalOffset = 5.0;
+    // var endVerticalOffset  = 5.0;
+    // if(srcElement.taskType == TaskType.plus || from.dy<=to.dy){
+    //   startVerticalOffset = 0;
+    // }
+    // if(destElement.taskType == TaskType.plus || to.dy<=from.dy){
+    //   endVerticalOffset = 0;
+    // }
     var pivot1 = Offset(from.dx, from.dy);
     if (params.startArrowPosition.y == 1) {
-      pivot1 = Offset(from.dx, from.dy + params.tailLength);
+      pivot1 = Offset(from.dx, (from.dy + to.dy) / 2);
     } else if (params.startArrowPosition.y == -1) {
       pivot1 = Offset(from.dx, from.dy - params.tailLength);
     }
 
     final pivot2 = Offset(to.dx, pivot1.dy);
 
+    // 绘制路径
     path
-      ..moveTo(from.dx, from.dy)
+      ..moveTo(from.dx, from.dy + 0)
       ..lineTo(pivot1.dx, pivot1.dy)
       ..lineTo(pivot2.dx, pivot2.dy)
-      ..lineTo(to.dx, to.dy);
+      ..lineTo(to.dx, to.dy - 0);
 
     lines.addAll([
       [from, pivot2],

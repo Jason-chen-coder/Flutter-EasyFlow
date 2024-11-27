@@ -171,7 +171,6 @@ class _FlowChartState extends State<FlowChart> {
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
           final position = Offset(translation.x, translation.y);
-
           widget.dashboard.setDashboardSize(size);
           widget.dashboard.setDashboardPosition(position);
         }
@@ -184,6 +183,24 @@ class _FlowChartState extends State<FlowChart> {
     final gridKey = GlobalKey();
     var tapDownPos = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
+    List<Widget> drawLine() {
+      final arrows = List<DrawArrow>.empty(growable: true);
+      for (int i = 0; i < widget.dashboard.elements.length; i++){
+        for (int n = 0; n < widget.dashboard.elements[i].next.length; n++){
+          arrows.add(DrawArrow(
+            key: UniqueKey(),
+            srcElement: widget.dashboard.elements[i],
+            destElement: widget
+                .dashboard.elements[widget.dashboard.findElementIndexById(
+              widget.dashboard.elements[i].next[n].destElementId,
+            )],
+            arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
+            pivots: widget.dashboard.elements[i].next[n].pivots,
+          ));
+        }
+      }
+      return arrows;
+    }
     return ClipRect(
       child: Stack(
         clipBehavior: Clip.none,
@@ -222,6 +239,7 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
+                // 监听画布缩放
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
                     details.scale + _oldScaleUpdateDelta,
@@ -261,13 +279,15 @@ class _FlowChartState extends State<FlowChart> {
               key: UniqueKey(),
               dashboard: widget.dashboard,
               element: widget.dashboard.elements.elementAt(i),
-              onElementPressed: widget.onElementPressed == null
-                  ? null
-                  : (context, position) => widget.onElementPressed!(
-                        context,
-                        position,
-                        widget.dashboard.elements.elementAt(i),
-                      ),
+              onElementPressed: (context, position) {
+                if (widget.onElementPressed != null) {
+                  widget.onElementPressed!(
+                    context,
+                    position,
+                    widget.dashboard.elements.elementAt(i),
+                  );
+                }
+              },
               onElementSecondaryTapped: widget.onElementSecondaryTapped == null
                   ? null
                   : (context, position) => widget.onElementSecondaryTapped!(
@@ -325,18 +345,7 @@ class _FlowChartState extends State<FlowChart> {
                           ),
             ),
           // 绘制连线
-          for (int i = 0; i < widget.dashboard.elements.length; i++)
-            for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
-              DrawArrow(
-                key: UniqueKey(),
-                srcElement: widget.dashboard.elements[i],
-                destElement: widget
-                    .dashboard.elements[widget.dashboard.findElementIndexById(
-                  widget.dashboard.elements[i].next[n].destElementId,
-                )],
-                arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
-                pivots: widget.dashboard.elements[i].next[n].pivots,
-              ),
+          ...drawLine(),
           // 绘制线段中转的点
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
@@ -353,7 +362,7 @@ class _FlowChartState extends State<FlowChart> {
                     onPivotSecondaryPressed: widget.onPivotSecondaryPressed,
                   ),
           // 绘制用户正在连接时的预览线
-          DrawingArrowWidget(style: widget.dashboard.defaultArrowStyle),
+          DrawingArrowWidget(style: widget.dashboard.defaultArrowStyle, dashboard: widget.dashboard),
         ],
       ),
     );
@@ -363,16 +372,21 @@ class _FlowChartState extends State<FlowChart> {
 /// Widget to draw interactive connection when the user tap on handlers
 class DrawingArrowWidget extends StatefulWidget {
   ///
-  const DrawingArrowWidget({required this.style, super.key});
+  const DrawingArrowWidget({
+    required this.style,
+    required this.dashboard,
+    super.key});
 
   ///
   final ArrowStyle style;
+  final Dashboard dashboard;
 
   @override
   State<DrawingArrowWidget> createState() => _DrawingArrowWidgetState();
 }
 
 class _DrawingArrowWidgetState extends State<DrawingArrowWidget> {
+
   @override
   void initState() {
     super.initState();
@@ -388,13 +402,14 @@ class _DrawingArrowWidgetState extends State<DrawingArrowWidget> {
   void _arrowChanged() {
     if (mounted) setState(() {});
   }
-
   @override
   Widget build(BuildContext context) {
+    final params = DrawingArrow.instance.params;
+    print("widget.dashboard.zoomFactor===>${widget.dashboard.zoomFactor}");
     if (DrawingArrow.instance.isZero()) return const SizedBox.shrink();
     return CustomPaint(
       painter: ArrowPainter(
-        params: DrawingArrow.instance.params,
+        params: params,
         from: DrawingArrow.instance.from,
         to: DrawingArrow.instance.to,
       ),

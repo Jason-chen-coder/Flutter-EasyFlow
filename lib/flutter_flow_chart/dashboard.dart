@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import './ui/segment_handler.dart';
@@ -25,11 +26,16 @@ class Dashboard extends ChangeNotifier {
     Offset? handlerFeedbackOffset,
     this.blockDefaultZoomGestures = false,
     this.minimumZoomFactor = 0.25,
-    this.defaultArrowStyle = ArrowStyle.curve,
+    this.defaultArrowStyle = ArrowStyle.rectangular,
   })  : elements = [],
         _dashboardPosition = Offset.zero,
         dashboardSize = Size.zero,
-        gridBackgroundParams = GridBackgroundParams() {
+        gridBackgroundParams = GridBackgroundParams(
+          // 画布背景点的颜色
+          gridColor: const Color(0xFFABABAB),
+          // 画布背景颜色
+          backgroundColor: const Color(0xFFf8f8f8),
+        ) {
     // This is a workaround to set the handlerFeedbackOffset
     // to improve the user experience on devices with touch screens
     // This will prevent the handler being covered by user's finger
@@ -83,7 +89,12 @@ class Dashboard extends ChangeNotifier {
   /// The current elements in the dashboard
   List<FlowElement> elements;
 
+  String selectedElement = '';
+
   Offset _dashboardPosition;
+
+  // 节点间默认距离
+  int defaultNodeDistance = 120;
 
   /// Dashboard size
   Size dashboardSize;
@@ -108,6 +119,8 @@ class Dashboard extends ChangeNotifier {
   /// setting it to 1 will prevent zooming out
   /// setting it to 0 will remove the limit
   double minimumZoomFactor;
+
+  bool allElementsDraggable = true;
 
   final List<ConnectionListener> _connectionListeners = [];
 
@@ -142,6 +155,13 @@ class Dashboard extends ChangeNotifier {
     element.isDraggable = draggable;
     if (notify) notifyListeners();
   }
+  void triggerllElementDraggable() {
+    allElementsDraggable = !allElementsDraggable;
+    for (var element in elements) {
+      element.isDraggable = allElementsDraggable;
+    }
+    if (allElementsDraggable) notifyListeners();
+  }
 
   /// set [connectable] element property
   void setElementConnectable(
@@ -163,11 +183,20 @@ class Dashboard extends ChangeNotifier {
     if (notify) notifyListeners();
   }
 
+  void setSelectedElement(String elementId){
+    selectedElement = elementId;
+    notifyListeners();
+  }
   /// add a [FlowElement] to the dashboard
   void addElement(FlowElement element, {bool notify = true, int? position}) {
     if (element.id.isEmpty) {
       element.id = const Uuid().v4();
     }
+    // 放大或缩小会导致节点偏移
+      element.position = Offset(
+          element.position.dx + (element.size.width * (1 - gridBackgroundParams.scale))/2,
+          element.position.dy);
+
     element.setScale(1, gridBackgroundParams.scale);
     elements.insert(position ?? elements.length, element);
     if (notify) {
@@ -468,14 +497,15 @@ class Dashboard extends ChangeNotifier {
     return found;
   }
 
-  /// [factor] needs to be a non negative value.
-  /// 1 is the default value.
-  /// Giving a value above 1 will zoom the dashboard by the given factor
-  /// and vice versa. Negative values will be ignored.
-  /// [zoomFactor] will not go below [minimumZoomFactor]
-  /// [focalPoint] is the point where the zoom is centered
-  /// default is the center of the dashboard
+  /// [factor] 需要是一个非负值。
+  /// 默认值为 1.
+  /// 提供大于 1 的值将按照给定的倍率放大仪表板，反之则缩小。
+  /// 负值将被忽略
+  /// zoomFactor] 不会低于 [minimumZoomFactor]。
+  /// [focalPoint] 是缩放的中心点，
+  /// 默认为仪表板的中心位置。
   void setZoomFactor(double factor, {Offset? focalPoint}) {
+    print("============>setZoomFactor");
     if (factor < minimumZoomFactor || gridBackgroundParams.scale == factor) {
       return;
     }
@@ -490,13 +520,13 @@ class Dashboard extends ChangeNotifier {
                 factor +
             focalPoint
         ..setScale(gridBackgroundParams.scale, factor);
+      // draw_arrow 添加 setScale方法
       for (final conn in element.next) {
         for (final pivot in conn.pivots) {
           pivot.setScale(gridBackgroundParams.scale, focalPoint, factor);
         }
       }
     }
-
     gridBackgroundParams.setScale(factor, focalPoint);
 
     notifyListeners();
@@ -521,17 +551,18 @@ class Dashboard extends ChangeNotifier {
     dashboardSize = size;
   }
 
-  /// make an arrow connection from [sourceElement] to
-  /// the elements with id [destId]
-  /// [arrowParams] definition of arrow parameters
+  /// 从 [sourceElement] 创建一个箭头连接到
+  /// ID 为 [destId] 的元素。
+  /// [arrowParams] 是箭头参数的定义。
   void addNextById(
     FlowElement sourceElement,
     String destId,
     ArrowParams arrowParams, {
     bool notify = true,
   }) {
+    print("=-=======>addNextById-=====>arrowParams:${arrowParams.toMap()}");
     var found = 0;
-    arrowParams.setScale(1, gridBackgroundParams.scale);
+    arrowParams.setScale(gridBackgroundParams.scale);
     for (var i = 0; i < elements.length; i++) {
       if (elements[i].id == destId) {
         // if the [id] already exist, remove it and add this new connection

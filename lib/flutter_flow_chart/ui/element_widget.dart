@@ -5,8 +5,10 @@ import '../objects/hexagon_widget.dart';
 import '../objects/image_widget.dart';
 import '../objects/oval_widget.dart';
 import '../objects/parallelogram_widget.dart';
+import '../objects/plus_widget.dart';
 import '../objects/rectangle_widget.dart';
 import '../objects/storage_widget.dart';
+import '../objects/task_widget.dart';
 
 import './element_handlers.dart';
 import './handler_widget.dart';
@@ -123,11 +125,17 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = HexagonWidget(element: widget.element);
       case ElementKind.rectangle:
         element = RectangleWidget(element: widget.element);
+      //   任务节点
+      case ElementKind.task:
+        element = TaskWidget(dashboard: widget.dashboard,element: widget.element);
+      case ElementKind.plus:
+        element = PlusWidget(element: widget.element);
       case ElementKind.image:
         element = ImageWidget(element: widget.element);
     }
 
     if (widget.element.isConnectable && widget.element.handlers.isNotEmpty) {
+      //element 的锚点
       element = ElementHandlers(
         dashboard: widget.dashboard,
         element: widget.element,

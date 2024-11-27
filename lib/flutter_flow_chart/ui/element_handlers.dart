@@ -184,10 +184,12 @@ class _ElementHandler extends StatelessWidget {
           return Draggable(
             feedback: const SizedBox.shrink(),
             feedbackOffset: dashboard.handlerFeedbackOffset,
+            // 锚点被拖拽过程中的视图
             childWhenDragging: HandlerWidget(
               width: handlerSize,
               height: handlerSize,
-              backgroundColor: Colors.blue,
+              backgroundColor: Color(0xFF31DA9F),
+              borderColor: Colors.white,
             ),
             data: {
               'srcElement': element,
@@ -230,9 +232,12 @@ class _ElementHandler extends StatelessWidget {
                   element,
                 );
               },
+              // 正常锚点的视图
               child: HandlerWidget(
                 width: handlerSize,
                 height: handlerSize,
+                backgroundColor: element.taskType != TaskType.plus ? Colors.white: Colors.transparent,
+                borderColor: dashboard.selectedElement == element.id? Color(0xFF31DA9F): Colors.white,
               ),
             ),
             onDragUpdate: (details) {
