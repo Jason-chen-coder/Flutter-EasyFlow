@@ -92,10 +92,11 @@ class TaskWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      // "${element.position.dx} ${ element.size.width}",
                       element.text,
                       style: titleTextStyle,
                     ),
-                    SizedBox(height: 1 * element.zoom), // 设置底部的间距
+                    SizedBox(height: 2 * element.zoom),
                     Text(
                       element.subTitleText,
                       style: subtitleTextStyle,

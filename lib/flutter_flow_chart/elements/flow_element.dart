@@ -15,7 +15,8 @@ enum TaskType {
   timeout,
   grab,
   end,
-  plus
+  plus,
+  group
 }
 
 // 扩展枚举，添加字符串映射
@@ -34,6 +35,8 @@ extension TaskTypeExtension on TaskType {
         return "grab";
       case TaskType.plus:
         return "plus";
+      case TaskType.group:
+        return "group";
       case TaskType.end:
         return "end";
     }
@@ -67,6 +70,8 @@ enum ElementKind {
   task,
 
   plus,
+
+  group,
 }
 
 /// Handler supported by elements
@@ -110,8 +115,9 @@ class FlowElement extends ChangeNotifier {
     this.fontFamily,
     this.textSize = 14,
     this.subTextColor = const Color(0xFF8D8C8D),
-    this.subTitleTextSize = 12,
+    this.subTitleTextSize = 10,
     this.iconSize = 40,
+    this.parentId = "",
     this.textIsBold = false,
     this.kind = ElementKind.rectangle,
     this.handlers = const [
@@ -156,6 +162,7 @@ class FlowElement extends ChangeNotifier {
       textSize: map['textSize'] as double,
       subTitleTextSize: map['subTitleTextSize'] as double,
       iconSize: map['iconSize'] as double,
+      parentId: map['parentId'] as String,
       textIsBold: map['textIsBold'] as bool,
       kind: ElementKind.values[map['kind'] as int],
       handlers: List<Handler>.from(
@@ -223,6 +230,9 @@ class FlowElement extends ChangeNotifier {
   Color subTextColor;
 
   double iconSize;
+
+  // 所属父级元素的ID,默认为空(整个画布)
+  String parentId;
 
   /// Makes text bold if true
   bool textIsBold;
@@ -309,8 +319,7 @@ class FlowElement extends ChangeNotifier {
     for (final element in next) {
       element.arrowParams.setScale(newScaleFactor);
     }
-
-    notifyListeners(); // 通知监听器，更新UI
+    notifyListeners();
   }
 
   /// Used internally to set an unique Uuid to this element
@@ -359,6 +368,11 @@ class FlowElement extends ChangeNotifier {
 
   void setIconSize(double size) {
     iconSize = size;
+    notifyListeners();
+  }
+
+  void setParentId(String id) {
+    parentId = id;
     notifyListeners();
   }
 
@@ -457,6 +471,7 @@ class FlowElement extends ChangeNotifier {
       'subTextColor': subTextColor,
       'subTitleTextSize': subTitleTextSize,
       'iconSize': iconSize,
+      'parentId': parentId,
       'textIsBold': textIsBold,
       'id': id,
       'kind': kind.index,

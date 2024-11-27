@@ -4,9 +4,9 @@ import '../elements/flow_element.dart';
 import './element_text_widget.dart';
 
 /// A kind of element
-class PlusWidget extends StatelessWidget {
+class GroupWidget extends StatelessWidget {
   ///
-  const PlusWidget({
+  const GroupWidget({
     required this.element,
     super.key,
   });
@@ -38,13 +38,11 @@ class PlusWidget extends StatelessWidget {
               ],
             ),
           ),
-          // 图标
+          // 图标和文字
          SizedBox(
            width: double.infinity,
            height: double.infinity,
-           child:
-           // Text("${element.position.dx}")
-           Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
+           child: Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
          )
         ],
       ),

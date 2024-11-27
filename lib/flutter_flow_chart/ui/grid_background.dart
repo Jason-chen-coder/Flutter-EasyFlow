@@ -9,7 +9,7 @@ class GridBackgroundParams extends ChangeNotifier {
     this.secondarySquareStep = 5,
     // 画布背景颜色
     this.backgroundColor =  const Color(0xFFf8f8f8),
-    this.gridColor = Colors.red,
+    this.gridColor = const Color(0xFFABABAB),
     void Function(double scale)? onScaleUpdate,
   }) : rawGridSquareSize = gridSquare {
     if (onScaleUpdate != null) {
@@ -24,7 +24,7 @@ class GridBackgroundParams extends ChangeNotifier {
       gridThickness: map['gridThickness'] as double? ?? 0.7,
       secondarySquareStep: map['secondarySquareStep'] as int? ?? 5,
       backgroundColor: Color(map['backgroundColor'] as int? ?? 0xFFFFFFFF),
-      gridColor: Color(map['gridColor'] as int? ?? 0xFFFFFFFF),
+      gridColor: Color(map['gridColor'] as int? ?? 0xFFABABAB),
     )
       ..scale = map['scale'] as double? ?? 1.0
       .._offset = Offset(
@@ -85,7 +85,6 @@ class GridBackgroundParams extends ChangeNotifier {
     scale = factor;
 
     for (final listener in _onScaleUpdateListeners) {
-      print("============>setScale");
       listener(scale);
     }
     notifyListeners();

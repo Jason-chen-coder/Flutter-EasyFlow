@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import '../objects/diamond_widget.dart';
+import '../objects/group_widget.dart';
 import '../objects/hexagon_widget.dart';
 import '../objects/image_widget.dart';
 import '../objects/oval_widget.dart';
@@ -128,8 +129,12 @@ class _ElementWidgetState extends State<ElementWidget> {
       //   任务节点
       case ElementKind.task:
         element = TaskWidget(dashboard: widget.dashboard,element: widget.element);
+      //   plus节点
       case ElementKind.plus:
         element = PlusWidget(element: widget.element);
+      //  组节点
+      case ElementKind.group:
+        element = GroupWidget(element: widget.element);
       case ElementKind.image:
         element = ImageWidget(element: widget.element);
     }

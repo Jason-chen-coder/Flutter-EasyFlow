@@ -2,7 +2,9 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
+import 'package:diagram_flow/flutter_flow_chart/ui/draw_arrow.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,30 @@ import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import './ui/segment_handler.dart';
 import 'package:uuid/uuid.dart';
 
+class RectangleBounds {
+  final double width;
+  final double height;
+  final double maxX;
+  final double minX;
+  final double minY;
+  final double maxY;
+  final Size size;
+
+  RectangleBounds({
+    required this.width,
+    required this.height,
+    required this.maxX,
+    required this.minX,
+    required this.minY,
+    required this.maxY,
+    required this.size
+  });
+
+  @override
+  String toString() {
+    return 'RectangleBounds(width: $width, height: $height, maxX: $maxX, minX: $minX, minY: $minY, maxY: $maxY,size:${size})';
+  }
+}
 /// Listener definition for a new connection
 typedef ConnectionListener = void Function(
   FlowElement srcElement,
@@ -26,6 +52,7 @@ class Dashboard extends ChangeNotifier {
     Offset? handlerFeedbackOffset,
     this.blockDefaultZoomGestures = false,
     this.minimumZoomFactor = 0.25,
+    this.maximumZoomFactor = 1.8,
     this.defaultArrowStyle = ArrowStyle.rectangular,
   })  : elements = [],
         _dashboardPosition = Offset.zero,
@@ -77,7 +104,8 @@ class Dashboard extends ChangeNotifier {
     d
       ..blockDefaultZoomGestures =
           (map['blockDefaultZoomGestures'] as bool? ?? false)
-      ..minimumZoomFactor = map['minimumZoomFactor'] as double? ?? 0.25;
+      ..minimumZoomFactor = map['minimumZoomFactor'] as double? ?? 0.25
+      ..maximumZoomFactor = map['maximumZoomFactor'] as double? ?? 1.8;
 
     return d;
   }
@@ -94,7 +122,7 @@ class Dashboard extends ChangeNotifier {
   Offset _dashboardPosition;
 
   // 节点间默认距离
-  int defaultNodeDistance = 120;
+  int defaultNodeDistance = 80;
 
   /// Dashboard size
   Size dashboardSize;
@@ -119,7 +147,7 @@ class Dashboard extends ChangeNotifier {
   /// setting it to 1 will prevent zooming out
   /// setting it to 0 will remove the limit
   double minimumZoomFactor;
-
+  double maximumZoomFactor;
   bool allElementsDraggable = true;
 
   final List<ConnectionListener> _connectionListeners = [];
@@ -192,18 +220,165 @@ class Dashboard extends ChangeNotifier {
     if (element.id.isEmpty) {
       element.id = const Uuid().v4();
     }
-    // 放大或缩小会导致节点偏移
-      element.position = Offset(
-          element.position.dx + (element.size.width * (1 - gridBackgroundParams.scale))/2,
+    //放大或缩小会导致节点偏移
+    element.position = Offset(
+          element.position.dx + ((element.size.width+ (element.handlerSize)) * (1 - gridBackgroundParams.scale))/2,
           element.position.dy);
 
     element.setScale(1, gridBackgroundParams.scale);
+
     elements.insert(position ?? elements.length, element);
     if (notify) {
       notifyListeners();
     }
   }
+  // todo : 优化缩放
+  void setFullView(){
+    RectangleBounds boundingBoxSize =calculateBoundingBox(elements);
+    double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize);
+    Offset focalPoint = Offset(boundingBoxSize.minX + boundingBoxSize.width/2,boundingBoxSize.minY+ boundingBoxSize.height/2);
+    setZoomFactor(newZoomFactor);
+    // setDashboardPosition(position + focalPoint);
+  }
 
+  RectangleBounds calculateBoundingBox(List<FlowElement> elements) {
+    // 初始化边界的最小值和最大值
+    double minX = double.infinity;
+    double minY = double.infinity;
+    double maxX = double.negativeInfinity;
+    double maxY = double.negativeInfinity;
+
+    for (var element in elements) {
+      // 获取节点的边界
+      double elementLeft = element.position.dx- element.handlerSize;
+      double elementTop = element.position.dy - element.handlerSize;
+      double elementRight = element.position.dx + element.size.width + element.handlerSize;
+      double elementBottom = element.position.dy + element.size.height + element.handlerSize;
+
+      // 更新边界值
+      minX = min(minX, elementLeft);
+      minY = min(minY, elementTop);
+      maxX = max(maxX, elementRight);
+      maxY = max(maxY, elementBottom);
+    }
+
+    return RectangleBounds(
+      width: maxX - minX,
+      height: maxY - minY,
+      minX: minX,
+      minY: minY,
+      maxX: maxX,
+      maxY: maxY,
+      size: Size(maxX - minX, maxY - minY),
+    );
+  }
+
+  double calculateScale(Size boundingBox, Size dashboardSize) {
+    double boundingWidth = boundingBox.width;
+    double boundingHeight = boundingBox.height;
+
+    double scaleX = dashboardSize.width / boundingWidth;
+    double scaleY = dashboardSize.height / boundingHeight;
+
+    // 保持比例一致，选择较小的缩放值
+    return scaleX < scaleY ? scaleX : scaleY;
+  }
+
+  void addElementByPlus(FlowElement plusElement, FlowElement orderElement) {
+    List<ConnectionParams> nextElementsConnectionParams = plusElement.next;
+    List<String> removedConnectDestElementIds = [];
+
+    // 新的 plus 节点
+    final newPlusElement = FlowElement(
+      size: const Size(36, 36),
+      elevation: 0,
+      iconSize: 20,
+      text: 'plus',
+      position: Offset(
+        orderElement.position.dx +
+            (orderElement.size.width + orderElement.handlerSize * zoomFactor) / 2,
+        orderElement.position.dy +
+            defaultNodeDistance * zoomFactor +
+            (orderElement.size.height + orderElement.handlerSize * zoomFactor) / 2,
+      ),
+      taskType: TaskType.plus,
+      kind: ElementKind.plus,
+      isDraggable: true,
+      handlers: [
+        Handler.bottomCenter,
+        Handler.topCenter,
+      ],
+    );
+
+    if (nextElementsConnectionParams.isNotEmpty) {
+      // 调整所有后续节点的垂直位置
+      for (var element in elements) {
+        if (element.position.dy > orderElement.position.dy - defaultNodeDistance * zoomFactor) {
+          element.position = Offset(
+            element.position.dx,
+            element.position.dy + defaultNodeDistance * zoomFactor * 2,
+          );
+        }
+      }
+
+      // 移除 plus 节点的现有连接并记录其目标节点
+      for (var params in nextElementsConnectionParams.toList()) {
+        removeConnectionByElements(
+          plusElement,
+          findElementById(params.destElementId) as FlowElement,
+          notify: false,
+        );
+        removedConnectDestElementIds.add(params.destElementId);
+      }
+    }
+
+    // 添加 orderElement 节点及其与 plus 节点的连接
+    _addElementWithConnection(plusElement, orderElement);
+
+    // 如果是终止任务节点，直接返回
+    if (orderElement.taskType == TaskType.end) return;
+
+    // 添加新的 plus 节点及其连接
+    _addElementWithConnection(orderElement, newPlusElement);
+
+    // 恢复之前移除的连接，将它们连接到新的 plus 节点
+    for (final destElementId in removedConnectDestElementIds) {
+      addNextById(
+        newPlusElement,
+        destElementId,
+        DrawingArrow.instance.params.copyWith(
+          style: ArrowStyle.rectangular,
+          startArrowPosition: Alignment.bottomCenter,
+          endArrowPosition: Alignment.topCenter,
+        ),
+      );
+    }
+  }
+
+  void _addElementWithConnection(FlowElement fromElement, FlowElement toElement) {
+    addElement(toElement);
+    addNextById(
+      fromElement,
+      toElement.id,
+      DrawingArrow.instance.params.copyWith(
+        style: ArrowStyle.rectangular,
+        startArrowPosition: Alignment.bottomCenter,
+        endArrowPosition: Alignment.topCenter,
+      ),
+    );
+  }
+
+  FlowElement? findSourceElementByDestElement(FlowElement destElement){
+    var sourceElement;
+    for (final element in elements) {
+      for (final conn in element.next) {
+          if(conn.destElementId == destElement.id){
+            sourceElement = element;
+          }
+      }
+    }
+    return sourceElement;
+  }
   /// Enable editing mode for an element
   void setElementEditingText(
     FlowElement element,
@@ -501,15 +676,19 @@ class Dashboard extends ChangeNotifier {
   /// 默认值为 1.
   /// 提供大于 1 的值将按照给定的倍率放大仪表板，反之则缩小。
   /// 负值将被忽略
-  /// zoomFactor] 不会低于 [minimumZoomFactor]。
+  /// zoomFactor 不会低于 [minimumZoomFactor] 不大于 [minimumZoomFactor]。
   /// [focalPoint] 是缩放的中心点，
   /// 默认为仪表板的中心位置。
   void setZoomFactor(double factor, {Offset? focalPoint}) {
-    print("============>setZoomFactor");
-    if (factor < minimumZoomFactor || gridBackgroundParams.scale == factor) {
+    if (gridBackgroundParams.scale == factor) {
       return;
     }
-
+    if(factor < minimumZoomFactor){
+      factor = minimumZoomFactor;
+    }
+    if (factor > maximumZoomFactor) {
+      factor = maximumZoomFactor;
+    }
     focalPoint ??= Offset(dashboardSize.width / 2, dashboardSize.height / 2);
 
     for (final element in elements) {
@@ -656,6 +835,7 @@ class Dashboard extends ChangeNotifier {
     );
     blockDefaultZoomGestures = source['blockDefaultZoomGestures'] as bool;
     minimumZoomFactor = source['minimumZoomFactor'] as double;
+    maximumZoomFactor = source['maximumZoomFactor'] as double;
     dashboardSize = Size(
       source['dashboardSizeWidth'] as double,
       source['dashboardSizeHeight'] as double,
