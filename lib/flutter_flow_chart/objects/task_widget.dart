@@ -118,7 +118,7 @@ class TaskWidget extends StatelessWidget {
             ]),
           ),
           //  删除和编辑按钮
-          isSelected ? Positioned(
+          (isSelected&& element.taskType != TaskType.trigger && element.taskType !=TaskType.end) ? Positioned(
               top: -10  * element.zoom,
               right: 10  * element.zoom,
               child: Row(

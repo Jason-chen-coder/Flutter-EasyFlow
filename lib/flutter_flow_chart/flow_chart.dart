@@ -61,7 +61,8 @@ class FlowChart extends StatefulWidget {
   final void Function(
     BuildContext context,
     Offset position,
-    FlowElement element,
+    FlowElement sourceElement,
+    FlowElement destElement,
   )? onPlusNodePressed;
 
   /// callback for mouse right click event on an element
@@ -348,16 +349,7 @@ class _FlowChartState extends State<FlowChart> {
                   destElement: widget
                       .dashboard.elements[widget.dashboard.findElementIndexById(
                     widget.dashboard.elements[i].next[n].destElementId,
-                  )],
-                  onPlusNodePressed: (context, position) {
-                    if (widget.onPlusNodePressed != null) {
-                      widget.onPlusNodePressed!(
-                        context as BuildContext,
-                        position as Offset,
-                        widget.dashboard.elements.elementAt(i),
-                      );
-                    }
-                  }),
+                  )],),
           // 绘制连线上的plus点
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
@@ -375,7 +367,11 @@ class _FlowChartState extends State<FlowChart> {
                       widget.onPlusNodePressed!(
                         context,
                         position,
-                        widget.dashboard.elements.elementAt(i),
+                        widget.dashboard.elements[i],
+                          widget
+                              .dashboard.elements[widget.dashboard.findElementIndexById(
+                            widget.dashboard.elements[i].next[n].destElementId,
+                          )]
                       );
                     }
                   }),

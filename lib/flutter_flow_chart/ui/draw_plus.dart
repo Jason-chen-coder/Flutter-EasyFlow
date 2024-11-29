@@ -99,7 +99,7 @@ class _DrawArrowState extends State<DrawPlus> {
           child: GestureDetector(
             onTapDown: (details) => tapLocation = details.globalPosition,
             onTap: () {
-              widget.onPlusNodePressed?.call(context, tapLocation);
+              widget.onPlusNodePressed?.call(context, Offset(pivotPlus.dx + plusNodeSize/2, pivotPlus.dy + plusNodeSize/2));
             },
             child: Container(
               decoration:BoxDecoration(

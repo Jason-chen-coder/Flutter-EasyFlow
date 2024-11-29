@@ -195,7 +195,6 @@ class DrawArrow extends StatefulWidget {
     required this.srcElement,
     required this.destElement,
     required List<Pivot> pivots,
-    this.onPlusNodePressed,
     super.key,
     ArrowParams? arrowParams,
   })  : arrowParams = arrowParams ?? ArrowParams(),
@@ -212,9 +211,6 @@ class DrawArrow extends StatefulWidget {
 
   ///
   final PivotsNotifier pivots;
-
-  final void Function(BuildContext context, Offset position)? onPlusNodePressed;
-
 
   @override
   State<DrawArrow> createState() => _DrawArrowState();
