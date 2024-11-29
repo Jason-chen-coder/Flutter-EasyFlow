@@ -31,6 +31,7 @@ class ArrowParams extends ChangeNotifier {
     this.color = const Color(0xFF999999),
     this.style,
     this.tension = 1.0,
+    this.plusNodeSize = 36,
     this.startArrowPosition = Alignment.centerRight,
     this.endArrowPosition = Alignment.centerLeft,
   }) : _tailLength = tailLength;
@@ -40,6 +41,7 @@ class ArrowParams extends ChangeNotifier {
     return ArrowParams(
       thickness: map['thickness'] as double,
       headRadius: map['headRadius'] as double? ?? 4.0,
+      plusNodeSize: map['plusNodeSize'] as double? ?? 16.0,
       tailLength: map['tailLength'] as double? ?? 25.0,
       color: Color(map['color'] as int),
       style: ArrowStyle.values[map['style'] as int? ?? 0],
@@ -65,6 +67,7 @@ class ArrowParams extends ChangeNotifier {
   /// The radius of arrow tip.
   double headRadius;
 
+  double plusNodeSize;
   /// Arrow color.
   final Color color;
 
@@ -108,6 +111,7 @@ class ArrowParams extends ChangeNotifier {
     return <String, dynamic>{
       'thickness': thickness,
       'headRadius': headRadius,
+      'plusNodeSize':plusNodeSize,
       'tailLength': _tailLength,
       'color': color.value,
       'style': style?.index,
@@ -126,6 +130,7 @@ class ArrowParams extends ChangeNotifier {
   void setScale(double scale) {
     thickness = thickness * scale;
     headRadius = headRadius * scale;
+    plusNodeSize = plusNodeSize * scale;
     _tailLength = _tailLength * scale;
     notifyListeners();
   }
@@ -190,6 +195,7 @@ class DrawArrow extends StatefulWidget {
     required this.srcElement,
     required this.destElement,
     required List<Pivot> pivots,
+    this.onPlusNodePressed,
     super.key,
     ArrowParams? arrowParams,
   })  : arrowParams = arrowParams ?? ArrowParams(),
@@ -206,6 +212,9 @@ class DrawArrow extends StatefulWidget {
 
   ///
   final PivotsNotifier pivots;
+
+  final void Function(BuildContext context, Offset position)? onPlusNodePressed;
+
 
   @override
   State<DrawArrow> createState() => _DrawArrowState();
@@ -257,21 +266,20 @@ class _DrawArrowState extends State<DrawArrow> {
           (widget.destElement.size.height *
               ((widget.arrowParams.endArrowPosition.y + 1) / 2)),
     );
+
     return RepaintBoundary(
-      child: Stack(
-        children: [
-          CustomPaint(
+      child: Builder(
+        builder: (context) {
+          return CustomPaint(
             painter: ArrowPainter(
               params: widget.arrowParams,
               from: from,
               to: to,
               pivots: widget.pivots.value,
-              srcElement:widget.srcElement,
-              destElement:widget.destElement,
             ),
-            child: Container(),
-          ),
-        ],
+            child: SizedBox(),
+          );
+        },
       ),
     );
   }
@@ -313,11 +321,19 @@ class ArrowPainter extends CustomPainter {
 
   late FlowElement srcElement ;
   late FlowElement destElement ;
+
+  @override
+  bool? hitTest(Offset position) {
+    // 返回 false 以确保事件可以传递到 child
+    return false;
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..strokeWidth = params.thickness // 设置画笔的宽度
       ..color = const Color(0xFF4f5158);
+
     // 绘制连线
     if (params.style == ArrowStyle.curve) {
       drawCurve(canvas, paint);
@@ -338,8 +354,67 @@ class ArrowPainter extends CustomPainter {
     paint
       ..color = params.color
       ..style = PaintingStyle.stroke;
+
     canvas.drawPath(path, paint);
+
+    // 绘制连线之间的加号
+    // if (params.style != ArrowStyle.curve) {
+    //   drawPlusNode(canvas, paint);
+    // }
   }
+  // void drawPlusNode(Canvas canvas, Paint paint) {
+  //   final paint = Paint()
+  //     ..strokeWidth = params.thickness // 设置画笔的宽度
+  //     ..color = Colors.white; // 设置颜色
+  //
+  //   var pivot1 = Offset(from.dx, from.dy);
+  //   if (params.startArrowPosition.y == 1) {
+  //     pivot1 = Offset(from.dx, (from.dy + to.dy) / 2);
+  //   } else if (params.startArrowPosition.y == -1) {
+  //     pivot1 = Offset(from.dx, from.dy - params.tailLength);
+  //   }
+  //
+  //   final pivot2 = Offset(to.dx, pivot1.dy);
+  //   // plus 的点
+  //   final pivotPlus = Offset((pivot1.dx + pivot2.dx) / 2, pivot1.dy);
+  //
+  //   // 边长
+  //   final double sideLength = params.headRadius * 12.0 ;
+  //
+  //   // 左上角坐标
+  //   final Rect squareRect = Rect.fromCenter(
+  //     center: pivotPlus, // 中心点
+  //     width: sideLength, // 宽
+  //     height: sideLength, // 高
+  //   );
+  //
+  //   // 创建带圆角的矩形
+  //   final rrect = RRect.fromRectAndRadius(squareRect, Radius.circular(5));
+  //
+  //   canvas.drawRRect(rrect, paint); // 绘制正方形
+  //
+  //   // 绘制 + 号
+  //   final plusPaint = Paint()
+  //   ..color = const Color(0xFF6CD7A3)
+  //   ..strokeWidth = 2.0
+  //   ..style = PaintingStyle.stroke;
+  //
+  //   final double plusSize = 20;
+  //
+  //   // 水平线
+  //   canvas.drawLine(
+  //   Offset(pivotPlus.dx - plusSize / 2, pivotPlus.dy), // 起点
+  //   Offset(pivotPlus.dx + plusSize / 2, pivotPlus.dy), // 终点
+  //   plusPaint,
+  //   );
+  //
+  //   // 垂直线
+  //   canvas.drawLine(
+  //   Offset(pivotPlus.dx, pivotPlus.dy - plusSize / 2), // 起点
+  //   Offset(pivotPlus.dx, pivotPlus.dy + plusSize / 2), // 终点
+  //   plusPaint,
+  //   );
+  // }
 
   /// Draw a segmented line with a tension between points.
   void drawLine() {
@@ -457,9 +532,6 @@ class ArrowPainter extends CustomPainter {
   bool shouldRepaint(ArrowPainter oldDelegate) {
     return true;
   }
-
-  @override
-  bool? hitTest(Offset position) => false;
 }
 
 /// Notifier for pivot points.

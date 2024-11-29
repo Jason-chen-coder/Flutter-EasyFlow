@@ -92,7 +92,7 @@ class TaskWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      // "${element.position.dx} ${ element.size.width}",
+                      // "${element.position.dy} ${ element.size.width}",
                       element.text,
                       style: titleTextStyle,
                     ),

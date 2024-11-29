@@ -21,7 +21,7 @@ class RectangleBounds {
   final double minY;
   final double maxY;
   final Size size;
-
+  final Offset center;
   RectangleBounds({
     required this.width,
     required this.height,
@@ -29,6 +29,7 @@ class RectangleBounds {
     required this.minX,
     required this.minY,
     required this.maxY,
+    required this.center,
     required this.size
   });
 
@@ -232,13 +233,32 @@ class Dashboard extends ChangeNotifier {
       notifyListeners();
     }
   }
-  // todo : 优化缩放
+  // TODO : 优化缩放
   void setFullView(){
+    if(elements.length<1){
+      return;
+    }
     RectangleBounds boundingBoxSize =calculateBoundingBox(elements);
-    double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize);
-    Offset focalPoint = Offset(boundingBoxSize.minX + boundingBoxSize.width/2,boundingBoxSize.minY+ boundingBoxSize.height/2);
-    setZoomFactor(newZoomFactor);
-    // setDashboardPosition(position + focalPoint);
+    print("boundingBoxSize.center====>${boundingBoxSize.center}");
+
+    // 将所有元素移动至画布中心
+    final center = Offset(dashboardSize.width / 2, dashboardSize.height / 2);
+    final currentDeviation = boundingBoxSize.center - center;
+    double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize) +  zoomFactor - 1;
+
+    setDashboardPosition(position  + currentDeviation);
+    gridBackgroundParams.offset = center;
+    for (final element in elements) {
+      element.position -= currentDeviation;
+      for (final next in element.next) {
+        for (final pivot in next.pivots) {
+          pivot.pivot -= currentDeviation;
+        }
+      }
+    }
+    // 开始放大/缩小
+    setZoomFactor(newZoomFactor,focalPoint: center);
+    notifyListeners();
   }
 
   RectangleBounds calculateBoundingBox(List<FlowElement> elements) {
@@ -247,28 +267,32 @@ class Dashboard extends ChangeNotifier {
     double minY = double.infinity;
     double maxX = double.negativeInfinity;
     double maxY = double.negativeInfinity;
-
+    double paddingOffset = 50;
+    double handleSize = 10;
     for (var element in elements) {
       // 获取节点的边界
-      double elementLeft = element.position.dx- element.handlerSize;
-      double elementTop = element.position.dy - element.handlerSize;
-      double elementRight = element.position.dx + element.size.width + element.handlerSize;
-      double elementBottom = element.position.dy + element.size.height + element.handlerSize;
+      double elementLeft = element.position.dx - paddingOffset;
+      double elementTop = element.position.dy  - paddingOffset;
+      double elementRight = element.position.dx + element.size.width + paddingOffset;
+      double elementBottom = element.position.dy + element.size.height + paddingOffset;
 
       // 更新边界值
       minX = min(minX, elementLeft);
       minY = min(minY, elementTop);
       maxX = max(maxX, elementRight);
       maxY = max(maxY, elementBottom);
-    }
 
+    }
+    double width = maxX - minX + (handleSize*2) ;
+    double height = maxY - minY + (handleSize*2) ;
     return RectangleBounds(
-      width: maxX - minX,
-      height: maxY - minY,
+      width: width,
+      height: height,
       minX: minX,
       minY: minY,
       maxX: maxX,
       maxY: maxY,
+      center: Offset(minX + (width) / 2, minY + (height) / 2),
       size: Size(maxX - minX, maxY - minY),
     );
   }
@@ -313,7 +337,7 @@ class Dashboard extends ChangeNotifier {
     if (nextElementsConnectionParams.isNotEmpty) {
       // 调整所有后续节点的垂直位置
       for (var element in elements) {
-        if (element.position.dy > orderElement.position.dy - defaultNodeDistance * zoomFactor) {
+        if (element.position.dy >= orderElement.position.dy - defaultNodeDistance * zoomFactor) {
           element.position = Offset(
             element.position.dx,
             element.position.dy + defaultNodeDistance * zoomFactor * 2,
@@ -716,8 +740,7 @@ class Dashboard extends ChangeNotifier {
     return gridBackgroundParams.scale;
   }
 
-  /// needed to know the diagram widget position to compute
-  /// offsets for drag and drop elements
+  // 需要知道图表组件的位置以计算拖放元素的偏移量
   void setDashboardPosition(Offset position) {
     _dashboardPosition = position;
   }

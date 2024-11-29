@@ -1,4 +1,5 @@
 // ignore: directives_ordering
+import 'package:diagram_flow/flutter_flow_chart/ui/draw_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class FlowChart extends StatefulWidget {
     required this.dashboard,
     super.key,
     this.onElementPressed,
+    this.onPlusNodePressed,
     this.onElementSecondaryTapped,
     this.onElementLongPressed,
     this.onElementSecondaryLongTapped,
@@ -55,6 +57,12 @@ class FlowChart extends StatefulWidget {
     Offset position,
     FlowElement element,
   )? onElementPressed;
+
+  final void Function(
+    BuildContext context,
+    Offset position,
+    FlowElement element,
+  )? onPlusNodePressed;
 
   /// callback for mouse right click event on an element
   final void Function(
@@ -168,6 +176,7 @@ class _FlowChartState extends State<FlowChart> {
       if (mounted) {
         final object = context.findRenderObject() as RenderBox?;
         if (object != null) {
+          // 获取 RenderBox 对象的平移变换，即其相对于屏幕的位置
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
           final position = Offset(translation.x, translation.y);
@@ -183,24 +192,7 @@ class _FlowChartState extends State<FlowChart> {
     final gridKey = GlobalKey();
     var tapDownPos = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
-    List<Widget> drawLine() {
-      final arrows = List<DrawArrow>.empty(growable: true);
-      for (int i = 0; i < widget.dashboard.elements.length; i++){
-        for (int n = 0; n < widget.dashboard.elements[i].next.length; n++){
-          arrows.add(DrawArrow(
-            key: UniqueKey(),
-            srcElement: widget.dashboard.elements[i],
-            destElement: widget
-                .dashboard.elements[widget.dashboard.findElementIndexById(
-              widget.dashboard.elements[i].next[n].destElementId,
-            )],
-            arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
-            pivots: widget.dashboard.elements[i].next[n].pivots,
-          ));
-        }
-      }
-      return arrows;
-    }
+
     return ClipRect(
       child: Stack(
         clipBehavior: Clip.none,
@@ -239,6 +231,7 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
+                print('details.focalPoint====>：${details.scale}');
                 // 监听画布缩放
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
@@ -246,7 +239,6 @@ class _FlowChartState extends State<FlowChart> {
                     focalPoint: details.focalPoint,
                   );
                 }
-
                 widget.dashboard.setDashboardPosition(
                   widget.dashboard.position + details.focalPointDelta,
                 );
@@ -273,6 +265,7 @@ class _FlowChartState extends State<FlowChart> {
               ),
             ),
           ),
+          // TODO: 优化渲染逻辑：不需要重新遍历那么多次
           // 绘制 elements
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             ElementWidget(
@@ -345,7 +338,47 @@ class _FlowChartState extends State<FlowChart> {
                           ),
             ),
           // 绘制连线
-          ...drawLine(),
+          for (int i = 0; i < widget.dashboard.elements.length; i++)
+            for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
+              DrawArrow(
+                  arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
+                  pivots: widget.dashboard.elements[i].next[n].pivots,
+                  key: UniqueKey(),
+                  srcElement: widget.dashboard.elements[i],
+                  destElement: widget
+                      .dashboard.elements[widget.dashboard.findElementIndexById(
+                    widget.dashboard.elements[i].next[n].destElementId,
+                  )],
+                  onPlusNodePressed: (context, position) {
+                    if (widget.onPlusNodePressed != null) {
+                      widget.onPlusNodePressed!(
+                        context as BuildContext,
+                        position as Offset,
+                        widget.dashboard.elements.elementAt(i),
+                      );
+                    }
+                  }),
+          // 绘制连线上的plus点
+          for (int i = 0; i < widget.dashboard.elements.length; i++)
+            for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
+              DrawPlus(
+                  arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
+                  pivots: widget.dashboard.elements[i].next[n].pivots,
+                  key: UniqueKey(),
+                  srcElement: widget.dashboard.elements[i],
+                  destElement: widget
+                      .dashboard.elements[widget.dashboard.findElementIndexById(
+                    widget.dashboard.elements[i].next[n].destElementId,
+                  )],
+                  onPlusNodePressed: (context, position) {
+                    if (widget.onPlusNodePressed != null) {
+                      widget.onPlusNodePressed!(
+                        context,
+                        position,
+                        widget.dashboard.elements.elementAt(i),
+                      );
+                    }
+                  }),
           // 绘制线段中转的点
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
@@ -362,7 +395,9 @@ class _FlowChartState extends State<FlowChart> {
                     onPivotSecondaryPressed: widget.onPivotSecondaryPressed,
                   ),
           // 绘制用户正在连接时的预览线
-          DrawingArrowWidget(style: widget.dashboard.defaultArrowStyle, dashboard: widget.dashboard),
+          DrawingArrowWidget(
+              style: widget.dashboard.defaultArrowStyle,
+              dashboard: widget.dashboard),
         ],
       ),
     );
@@ -372,10 +407,8 @@ class _FlowChartState extends State<FlowChart> {
 /// Widget to draw interactive connection when the user tap on handlers
 class DrawingArrowWidget extends StatefulWidget {
   ///
-  const DrawingArrowWidget({
-    required this.style,
-    required this.dashboard,
-    super.key});
+  const DrawingArrowWidget(
+      {required this.style, required this.dashboard, super.key});
 
   ///
   final ArrowStyle style;
@@ -386,7 +419,6 @@ class DrawingArrowWidget extends StatefulWidget {
 }
 
 class _DrawingArrowWidgetState extends State<DrawingArrowWidget> {
-
   @override
   void initState() {
     super.initState();
@@ -402,10 +434,10 @@ class _DrawingArrowWidgetState extends State<DrawingArrowWidget> {
   void _arrowChanged() {
     if (mounted) setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
     final params = DrawingArrow.instance.params;
-    print("widget.dashboard.zoomFactor===>${widget.dashboard.zoomFactor}");
     if (DrawingArrow.instance.isZero()) return const SizedBox.shrink();
     return CustomPaint(
       painter: ArrowPainter(

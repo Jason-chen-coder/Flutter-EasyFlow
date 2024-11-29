@@ -134,7 +134,7 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = PlusWidget(element: widget.element);
       //  组节点
       case ElementKind.group:
-        element = GroupWidget(element: widget.element);
+        element = GroupWidget(dashboard: widget.dashboard,element: widget.element);
       case ElementKind.image:
         element = ImageWidget(element: widget.element);
     }
