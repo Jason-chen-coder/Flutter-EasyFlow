@@ -207,7 +207,7 @@ class _ElementWidgetState extends State<ElementWidget> {
         child: Stack(
           children: [
             element,
-            if (widget.element.isResizable) _buildResizeHandle(),
+            if (true||widget.element.isResizable) _buildResizeHandle(),
             if (widget.element.isDeletable) _buildDeleteHandle(),
           ],
         ),

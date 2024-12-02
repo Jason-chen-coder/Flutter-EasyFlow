@@ -54,15 +54,12 @@ class TaskWidget extends StatelessWidget {
                     offset: Offset(element.elevation, element.elevation), // 阴影偏移
                   ),
               ],
-              // border: Border.all(
-              //   color: element.borderColor,
-              //   width: element.borderThickness,
               // ),
             ),
           ),
           // 图标和文字
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10* element.zoom, vertical: 10* element.zoom),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10* element.zoom, vertical: 0),
             child: Row(children: [
               // 图标
               Container(
@@ -90,6 +87,7 @@ class TaskWidget extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       // "${element.position.dy} ${ element.size.width}",

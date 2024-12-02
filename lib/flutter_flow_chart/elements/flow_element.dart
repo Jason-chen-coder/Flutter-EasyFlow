@@ -428,6 +428,13 @@ class FlowElement extends ChangeNotifier {
   }
   /// Change element size
   void changeSize(Size newSize) {
+    double zoomWidthVal = newSize.width/ size.width;
+    double zoomHeightVal = newSize.height/ size.height;
+    iconSize = iconSize * zoomWidthVal;
+    textSize = textSize * zoomHeightVal;
+    subTitleTextSize = subTitleTextSize * zoomHeightVal;
+    print("====>zoomWidthVal:${zoomWidthVal}");
+    print("====>zoomHeightVal:${zoomHeightVal}");
     size = newSize;
     if (size.width < 40) size = Size(40, size.height);
     if (size.height < 40) size = Size(size.width, 40);
