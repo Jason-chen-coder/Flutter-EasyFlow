@@ -4,8 +4,6 @@ import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:star_menu/star_menu.dart';
 
-import '../flutter_flow_chart/ui/draw_arrow.dart';
-
 class CustomFlowChart extends StatefulWidget {
   static String name = 'CustomFlowChart';
 
@@ -16,7 +14,6 @@ class CustomFlowChart extends StatefulWidget {
 }
 
 class _CustomFlowChartState extends State<CustomFlowChart> {
-  // Map<String,dynamic> _flowData = FlowData();
   /// Notifier for the tension slider
   final segmentedTension = ValueNotifier<double>(1);
   late final Dashboard dashboard;
@@ -46,8 +43,13 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
             constraints: BoxConstraints.expand(),
             child: FlowChart(
                 dashboard: dashboard,
-                onPlusNodePressed:(context, position, sourceElement,destElement) {
-                  _displayPlusElementMenu(context, position, sourceElement,destElement);
+                onPlusNodePressed:
+                    (context, position, sourceElement, destElement) {
+                  _displayPlusElementMenu(context, position, sourceElement);
+                },
+                onGoupPlusPressed: (context, position, element) {
+                  print("onGoupPlusPressed=====>${element}");
+                  _displayGroupPlusElementMenu(context, position, element);
                 },
                 onScaleUpdate: (newScale) {},
                 onDashboardLongTapped: (context, position) {
@@ -70,117 +72,14 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                 },
                 // 单击元素时的回调
                 onElementPressed: (context, position, element) {
-                  if (element.taskType == TaskType.plus) {
-                    // _displayPlusElementMenu(context, position, element);
-                  } else {
-                    dashboard.setSelectedElement(element.id);
-                  }
+                  print("onElementPressed=====>${element}");
+                  dashboard.setSelectedElement(element.id);
                 }),
           ),
           Positioned(
               left: 50,
               bottom: 50,
               child: Column(children: [
-                // 添加start节点
-                // Container(
-                //   width: 36,
-                //   height: 36,
-                //   margin: EdgeInsets.symmetric(vertical: 2,horizontal: 1),
-                //   child: ElevatedButton(
-                //     style: ElevatedButton.styleFrom(
-                //       padding: EdgeInsets.zero,
-                //       backgroundColor: Color(0xFFffffff),
-                //       shape: RoundedRectangleBorder(
-                //           borderRadius: BorderRadius.circular(5)),
-                //     ),
-                //     onPressed: () {
-                //       _initStartElements();
-                //     },
-                //     child: const Icon(
-                //       Icons.task,
-                //       color: Color(0xFF8D8C8D),
-                //       size: 20,
-                //     ),
-                //   ),
-                // ),
-                // 添加end节点
-                // Container(
-                //   width: 36,
-                //   height: 36,
-                //   margin: EdgeInsets.symmetric(vertical: 2,horizontal: 1),
-                //   child: ElevatedButton(
-                //     style: ElevatedButton.styleFrom(
-                //       padding: EdgeInsets.zero,
-                //       backgroundColor: Color(0xFFffffff),
-                //       shape: RoundedRectangleBorder(
-                //           borderRadius: BorderRadius.circular(5)),
-                //     ),
-                //     onPressed: () {
-                //       dashboard.addElement(
-                //         FlowElement(
-                //           position: Offset(dashboard.dashboardSize.width / 2,
-                //               dashboard.dashboardSize.height/1.5),
-                //           text: 'End Process',
-                //           subTitleText: 'end of workflows',
-                //           taskType:TaskType.end,
-                //           kind: ElementKind.task,
-                //           isDraggable: true,
-                //           handlers: [
-                //             // Handler.bottomCenter,
-                //             Handler.topCenter,
-                //             // Handler.leftCenter,
-                //             // Handler.rightCenter,
-                //           ],
-                //         ),
-                //       );
-                //     },
-                //     child: const Icon(
-                //       Icons.pin_end,
-                //       color: Color(0xFF8D8C8D),
-                //       size: 20,
-                //     ),
-                //   ),
-                // ),
-                // 添加组节点
-                // Container(
-                //   width: 36,
-                //   height: 36,
-                //   margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                //   child: ElevatedButton(
-                //     style: ElevatedButton.styleFrom(
-                //       padding: EdgeInsets.zero,
-                //       backgroundColor: Color(0xFFffffff),
-                //       shape: RoundedRectangleBorder(
-                //           borderRadius: BorderRadius.circular(5)),
-                //     ),
-                //     onPressed: () {
-                //       final statDx = dashboard.dashboardSize.width / 2;
-                //       final groupElement = FlowElement(
-                //         size: Size(600, 100),
-                //         position:
-                //             Offset(statDx, dashboard.dashboardSize.height / 2),
-                //         text: 'Group',
-                //         taskType: TaskType.group,
-                //         kind: ElementKind.group,
-                //         isDraggable: true,
-                //         handlers: [
-                //           Handler.bottomCenter,
-                //           Handler.topCenter,
-                //           // Handler.leftCenter,
-                //           // Handler.rightCenter,
-                //         ],
-                //       );
-                //       dashboard.addElement(
-                //         groupElement,
-                //       );
-                //     },
-                //     child: const Icon(
-                //       Icons.grid_on,
-                //       color: Color(0xFF8D8C8D),
-                //       size: 20,
-                //     ),
-                //   ),
-                // ),
                 // 放大
                 Container(
                     width: 36,
@@ -269,7 +168,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     BuildContext context,
     Offset position,
     FlowElement sourceElement,
-    FlowElement destElement,
   ) {
     StarMenuOverlay.displayStarMenu(
       context,
@@ -294,7 +192,11 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(position.dx, position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
+                    position: Offset(
+                        position.dx,
+                        position.dy +
+                            dashboard.defaultNodeDistance *
+                                dashboard.zoomFactor),
                     text: 'Delay',
                     subTitleText: "wait for 12 minutes",
                     taskType: TaskType.delay,
@@ -302,8 +204,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                     handlers: [
                       Handler.bottomCenter,
                       Handler.topCenter,
-                      Handler.leftCenter,
-                      Handler.rightCenter,
                     ],
                   ));
             },
@@ -314,13 +214,18 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(position.dx, position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
+                    position: Offset(
+                        position.dx,
+                        position.dy +
+                            dashboard.defaultNodeDistance *
+                                dashboard.zoomFactor),
                     text: 'Timer Out',
                     subTitleText: "just 2 minutes",
                     taskType: TaskType.timeout,
                     kind: ElementKind.task,
                     handlers: [
                       Handler.topCenter,
+                      Handler.bottomCenter,
                     ],
                   ));
             },
@@ -331,13 +236,18 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(position.dx, position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
+                    position: Offset(
+                        position.dx,
+                        position.dy +
+                            dashboard.defaultNodeDistance *
+                                dashboard.zoomFactor),
                     text: 'Grab Samples',
                     subTitleText: "grab 2 PCR samples",
                     taskType: TaskType.grab,
                     kind: ElementKind.task,
                     handlers: [
                       Handler.topCenter,
+                      Handler.bottomCenter,
                     ],
                   ));
             },
@@ -345,25 +255,102 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
           ActionChip(
             label: const Text('Add Group'),
             onPressed: () {
-              final groupElement = FlowElement(
-                size: Size(600, 100),
-                position: Offset(position.dx, position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
-                text: 'Group',
-                taskType: TaskType.group,
-                kind: ElementKind.group,
-                isDraggable: true,
-                handlers: [
-                  Handler.bottomCenter,
-                  Handler.topCenter,
-                ],
-              );
-
-              dashboard.addElementByPlus(sourceElement, groupElement);
+              _addGroupNode(position, sourceElement);
             },
           ),
         ],
       ),
     );
+  }
+
+  void _displayGroupPlusElementMenu(
+    BuildContext context,
+    Offset position,
+    FlowElement sourceElement,
+  ) {
+    StarMenuOverlay.displayStarMenu(
+      context,
+      StarMenu(
+        params: StarMenuParameters(
+          shape: MenuShape.linear,
+          openDurationMs: 60,
+          linearShapeParams: const LinearShapeParams(
+            angle: 270,
+            alignment: LinearAlignment.left,
+            space: 10,
+          ),
+          // calculate the offset from the dashboard center
+          centerOffset: position - const Offset(-50, 90),
+        ),
+        onItemTapped: (index, controller) => controller.closeMenu!(),
+        parentContext: context,
+        items: [
+          ActionChip(
+            label: const Text('Add Delay'),
+            onPressed: () {
+              dashboard.addElementByGroupPlus(
+                  sourceElement,
+                  FlowElement(
+                      parentId: sourceElement.id,
+                      text: 'Delay',
+                      subTitleText: "wait for 12 minutes",
+                      taskType: TaskType.delay,
+                      kind: ElementKind.task,
+                      isDraggable: true,
+                      handlers: []));
+            },
+          ),
+          ActionChip(
+            label: const Text('Add Timer Out'),
+            onPressed: () {
+              dashboard.addElementByGroupPlus(
+                  sourceElement,
+                  FlowElement(
+                      parentId: sourceElement.id,
+                      text: 'Timer Out',
+                      subTitleText: "just 2 minutes",
+                      taskType: TaskType.timeout,
+                      kind: ElementKind.task,
+                      isDraggable: true,
+                      handlers: []));
+            },
+          ),
+          ActionChip(
+            label: const Text('Add Grab'),
+            onPressed: () {
+              dashboard.addElementByGroupPlus(
+                  sourceElement,
+                  FlowElement(
+                      parentId: sourceElement.id,
+                      text: 'Grab Samples',
+                      subTitleText: "grab 2 PCR samples",
+                      taskType: TaskType.grab,
+                      kind: ElementKind.task,
+                      isDraggable: true,
+                      handlers: []));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addGroupNode(Offset position, FlowElement sourceElement) {
+    final groupElement = FlowElement(
+      size: Size(400, 80),
+      position: Offset(position.dx,
+          position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
+      text: 'Group',
+      taskType: TaskType.group,
+      kind: ElementKind.group,
+      isDraggable: true,
+      handlers: [
+        Handler.bottomCenter,
+        Handler.topCenter,
+      ],
+    );
+
+    dashboard.addElementByPlus(sourceElement, groupElement);
   }
 
   void _initStartElements() {
@@ -383,95 +370,54 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     dashboard.addElement(
       startElement,
     );
+
+    final groupElementDx =
+        startElement.getHandlerPosition(Alignment.bottomCenter).dx;
+    final groupElementDy = startElement.position.dy +
+        ((startElement.handlerSize) * 2 +
+            startElement.size.height +
+            startElement.handlerSize) +
+        (dashboard.defaultNodeDistance * 2 * dashboard.zoomFactor);
+    final groupElement = FlowElement(
+      position: Offset(groupElementDx, groupElementDy),
+      text: 'Group',
+      size: Size(400, 80),
+      iconSize: 36,
+      taskType: TaskType.group,
+      kind: ElementKind.group,
+      handlers: [
+        Handler.topCenter,
+        Handler.bottomCenter,
+      ],
+    );
+    dashboard.addElement(
+      groupElement,
+    );
+    dashboard.addElementConnection(startElement, groupElement);
+
+    //
     final endElementDx =
         startElement.getHandlerPosition(Alignment.bottomCenter).dx;
-    final endElementDy =
-        startElement.position.dy + ((startElement.handlerSize)*2 +startElement.size.height + startElement.handlerSize)+
-            (dashboard.defaultNodeDistance*2* dashboard.zoomFactor ) ;
+
+    final endElementDy = groupElement.position.dy +
+        ((groupElement.handlerSize) * 2 +
+            groupElement.size.height +
+            groupElement.handlerSize) +
+        (dashboard.defaultNodeDistance * 2 * dashboard.zoomFactor);
+
     final endElement = FlowElement(
-              position: Offset(endElementDx, endElementDy),
-              text: 'End Process',
-              subTitleText: "end of workflows",
-              taskType: TaskType.end,
-              kind: ElementKind.task,
-              handlers: [
-                Handler.topCenter,
-              ],
-            );
+      position: Offset(endElementDx, endElementDy),
+      text: 'End Process',
+      subTitleText: "end of workflows",
+      taskType: TaskType.end,
+      kind: ElementKind.task,
+      handlers: [
+        Handler.topCenter,
+      ],
+    );
     dashboard.addElement(
       endElement,
     );
-    dashboard.addElementConnection(startElement, endElement);
-
-    // dashboard.addElementByPlus(
-    //     startElement,
-    //     endElement);
-
-    // final statDx = dashboard.dashboardSize.width / 2;
-    //
-    // final startElement = FlowElement(
-    //   position: Offset(statDx, dashboard.dashboardSize.height / 8),
-    //   text: 'Trigger',
-    //   subTitleText: '实验人员手动触发',
-    //   taskType: TaskType.trigger,
-    //   kind: ElementKind.task,
-    //   isDraggable: true,
-    //   handlers: [
-    //     Handler.bottomCenter,
-    //   ],
-    // );
-    //   添加
-    // final plusElementDx =
-    //     startElement.getHandlerPosition(Alignment.bottomCenter).dx;
-    // final plusElementDy =
-    //     startElement.getHandlerPosition(Alignment.bottomCenter).dy +
-    //         (dashboard.defaultNodeDistance * dashboard.zoomFactor);
-    // final plusElement = FlowElement(
-    //   size: Size(36, 36),
-    //   elevation: 0,
-    //   iconSize: 20,
-    //   text: 'plus',
-    //   position: Offset(plusElementDx, plusElementDy),
-    //   taskType: TaskType.plus,
-    //   kind: ElementKind.plus,
-    //   isDraggable: true,
-    //   handlers: [
-    //     Handler.bottomCenter,
-    //     Handler.topCenter,
-    //   ],
-    // );
-    // dashboard.addElement(
-    //   startElement,
-    // );
-    // 添加plus节点
-    // dashboard.addElement(plusElement);
-    //  连线
-    // dashboard.addNextById(
-    //   startElement,
-    //   plusElement.id,
-    //   DrawingArrow.instance.params.copyWith(
-    //     style: ArrowStyle.rectangular,
-    //     startArrowPosition: Alignment.bottomCenter,
-    //     endArrowPosition: Alignment.topCenter,
-    //   ),
-    // );
-    //   添加
-    // final newElementDx =
-    //     plusElement.getHandlerPosition(Alignment.bottomCenter).dx;
-    // final newElementDy =
-    //     plusElement.getHandlerPosition(Alignment.bottomCenter).dy +
-    //         (dashboard.defaultNodeDistance * dashboard.zoomFactor);
-    // dashboard.addElementByPlus(
-    //     plusElement,
-    //     FlowElement(
-    //       position: Offset(newElementDx, newElementDy),
-    //       text: 'End Process',
-    //       subTitleText: "end of workflows",
-    //       taskType: TaskType.end,
-    //       kind: ElementKind.task,
-    //       handlers: [
-    //         Handler.topCenter,
-    //       ],
-    //     ));
+    dashboard.addElementConnection(groupElement, endElement);
   }
 }

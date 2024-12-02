@@ -18,6 +18,7 @@ class FlowChart extends StatefulWidget {
     required this.dashboard,
     super.key,
     this.onElementPressed,
+    this.onGoupPlusPressed,
     this.onPlusNodePressed,
     this.onElementSecondaryTapped,
     this.onElementLongPressed,
@@ -57,6 +58,13 @@ class FlowChart extends StatefulWidget {
     Offset position,
     FlowElement element,
   )? onElementPressed;
+
+  // 点击组节点的plus
+  final void Function(
+      BuildContext context,
+      Offset position,
+      FlowElement element,
+      )? onGoupPlusPressed;
 
   final void Function(
     BuildContext context,
@@ -232,7 +240,6 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
-                print('details.focalPoint====>：${details.scale}');
                 // 监听画布缩放
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
@@ -276,6 +283,15 @@ class _FlowChartState extends State<FlowChart> {
               onElementPressed: (context, position) {
                 if (widget.onElementPressed != null) {
                   widget.onElementPressed!(
+                    context,
+                    position,
+                    widget.dashboard.elements.elementAt(i),
+                  );
+                }
+              },
+              onGoupPlusPressed: (context, position){
+                if (widget.onGoupPlusPressed != null) {
+                  widget.onGoupPlusPressed!(
                     context,
                     position,
                     widget.dashboard.elements.elementAt(i),
@@ -368,8 +384,7 @@ class _FlowChartState extends State<FlowChart> {
                         context,
                         position,
                         widget.dashboard.elements[i],
-                          widget
-                              .dashboard.elements[widget.dashboard.findElementIndexById(
+                        widget.dashboard.elements[widget.dashboard.findElementIndexById(
                             widget.dashboard.elements[i].next[n].destElementId,
                           )]
                       );

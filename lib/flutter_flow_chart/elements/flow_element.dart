@@ -128,7 +128,7 @@ class FlowElement extends ChangeNotifier {
     ],
     this.handlerSize = 20,
     this.backgroundColor = Colors.white,
-    this.borderRadius = 5,
+    this.borderRadius = 10,
     this.taskType = TaskType.none,
     this.borderColor = Colors.blue,
     this.borderThickness = 3,
@@ -286,6 +286,7 @@ class FlowElement extends ChangeNotifier {
   /// Kind-specific data
   final dynamic data;
 
+
   /// Kind-specific data to load/save
   String? serializedData;
 
@@ -406,13 +407,25 @@ class FlowElement extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Change element position in the dashboard
-  void changePosition(Offset newPosition) {
+  /// 修改节点坐标
+  void changePosition(Offset newPosition,
+      {FlowElement? element, Dashboard? dashboard,Offset? delta}) {
     position = newPosition;
-    debugPrint("============>changePosition");
+    if(element!=null && dashboard !=null && delta!=null){
+      if(element.taskType == TaskType.group){
+        moveGroupWidthSubElements(dashboard,element,delta);
+      }
+    }
     notifyListeners();
   }
 
+  /// 移动组节点时要带上子节点
+  void moveGroupWidthSubElements(Dashboard dashboard,FlowElement groupElement,Offset deltaPosition){
+    List<FlowElement> subElements = dashboard.elements.where((ele) => ele.parentId == groupElement.id).toList();
+    for (var element in subElements) {
+      element.changePosition(element.position + deltaPosition);
+    }
+  }
   /// Change element size
   void changeSize(Size newSize) {
     size = newSize;

@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_positional_boolean_parameters
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -12,6 +13,8 @@ import 'package:flutter/widgets.dart';
 import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import './ui/segment_handler.dart';
 import 'package:uuid/uuid.dart';
+
+final double groupElementSpacing = 20;
 
 class RectangleBounds {
   final double width;
@@ -355,6 +358,8 @@ class Dashboard extends ChangeNotifier {
           endArrowPosition: Alignment.topCenter,
         ),
       );
+      // 选中当前节点
+      setSelectedElement(orderElement.id);
     }
 
     // 添加 orderElement 节点及其与 plus 节点的连接
@@ -364,6 +369,29 @@ class Dashboard extends ChangeNotifier {
     // if (orderElement.taskType == TaskType.end) return;
 
     // setFullView();
+  }
+
+  // 组节点添加新节点
+  void addElementByGroupPlus(FlowElement groupElement, FlowElement orderElement) {
+    // 计算group的padding
+    final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
+    // 找到属于groupElement的所有子Element
+    List<FlowElement> subElements = elements.where((ele) => ele.parentId == groupElement.id).toList();
+    if(subElements.isNotEmpty){
+      final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
+      // 更新组节点的宽度
+      groupElement.size = Size(groupElement.size.width+offsetWidth, groupElement.size.height);
+      // 更新组节点及其子节点的位置
+      groupElement.position = Offset(groupElement.position.dx - offsetWidth/2, groupElement.position.dy);
+      for(final element in subElements){
+        element.changePosition(Offset(element.position.dx - offsetWidth/2, element.position.dy));
+      }
+    }
+      // 新增节点
+      final elementDx = groupElement.position.dx + currentGroupElementSpacing + subElements.length * (orderElement.size.width + currentGroupElementSpacing);
+      final elementDy = groupElement.position.dy + (groupElement.size.height - orderElement.size.height)/2;
+      orderElement.position = Offset(elementDx, elementDy);
+      addElement(orderElement);
   }
 
   void addElementConnection(FlowElement fromElement, FlowElement toElement) {
@@ -645,21 +673,55 @@ class Dashboard extends ChangeNotifier {
   void removeElementById(String id, {bool notify = true}) {
     late FlowElement removedElement;
     late FlowElement? sourceElement;
+
     // remove the element
     elements.removeWhere((element) {
-      removedElement = element;
-      sourceElement = findSrcElementByDestElement(element);
-      return element.id == id;
+      if(element.id == id){
+        removedElement = element;
+        sourceElement = findSrcElementByDestElement(element);
+        return true;
+      }else{
+        return false;
+      }
     });
-
-    // remove all connections to the elements found
+    // 删除组节点需要删除所有其子节点
+    if(removedElement.taskType == TaskType.group){
+      elements.removeWhere((element) => element.parentId == removedElement.id);
+    }
+    // 移除当前节点所有的连接
     for (final e in elements) {
       e.next.removeWhere((handlerParams) {
         return id.contains(handlerParams.destElementId);
       });
     }
-    // 更新布局
-    updateLayOutAfterDelElement(removedElement,sourceElement);
+    // 从组节点中移除,需要更新组节点的大小
+    if(removedElement.parentId != ""){
+      List<FlowElement> subElements = elements.where((ele) => ele.parentId == removedElement.parentId).toList();
+      final groupElement = findElementById(removedElement.parentId);
+      final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
+
+      if(subElements.isNotEmpty && groupElement !=null){
+        final offsetWidth = (removedElement.size.width + currentGroupElementSpacing);
+
+        final groupElementSize = Size(groupElement.size.width - removedElement.size.width - currentGroupElementSpacing,groupElement.size.height);
+      //  更新组节点大小
+        groupElement.size = groupElementSize;
+      //   更新组节点位置
+        groupElement.position = Offset(groupElement.position.dx+offsetWidth/2,groupElement.position.dy );
+        //  子节点重新排列
+        for (var i = 0; i < subElements.length; i++) {
+          final element = subElements[i];
+          final elementDx = groupElement.position.dx + currentGroupElementSpacing + i * (element.size.width + currentGroupElementSpacing);
+          element.changePosition(Offset(elementDx,element.position.dy));
+        }
+      }
+    }
+    // 如果有后续节点的布局需要更新
+    if(removedElement.next.isNotEmpty){
+      // 更新布局
+      updateLayOutAfterDelElement(removedElement,sourceElement);
+    }
+
     if (notify) notifyListeners();
   }
 
@@ -683,8 +745,6 @@ class Dashboard extends ChangeNotifier {
         removedConnectDestElementIds.add(params.destElementId);
       }
     }
-    print("=====>sourceElement:${sourceElement}");
-    print("=====>removedConnectDestElementIds:${removedConnectDestElementIds}");
     // 恢复之前移除的连接，将orderElement连接到destElementId节点
     for (final destElementId in removedConnectDestElementIds) {
       if(sourceElement != null){

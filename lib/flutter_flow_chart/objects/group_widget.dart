@@ -10,12 +10,15 @@ class GroupWidget extends StatelessWidget {
   const GroupWidget({
     required this.dashboard,
     required this.element,
+    required this.onGoupPlusPressed,
     super.key,
   });
 
   ///
   final FlowElement element;
   final Dashboard dashboard;
+
+  final void Function( Offset position)? onGoupPlusPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +28,8 @@ class GroupWidget extends StatelessWidget {
 
     toolbarIconWrapperSize  = toolbarIconWrapperSize * element.zoom;
     toolbarIconSize  = toolbarIconSize * element.zoom;
+    var tapLocation = Offset.zero;
+    List<FlowElement> subElements = dashboard.elements.where((ele) => ele.parentId == element.id).toList();
 
     return SizedBox(
       width: element.size.width,
@@ -42,7 +47,7 @@ class GroupWidget extends StatelessWidget {
                 if (element.elevation > 0.01)
                   BoxShadow(
                     color: Colors.black.withOpacity(0.2), // 阴影颜色和透明度
-                    blurRadius: 10, // 模糊半径
+                    blurRadius: 10 * element.zoom, // 模糊半径
                     spreadRadius: 0, // 扩散半径
                     offset: Offset(element.elevation, element.elevation), // 阴影偏移
                   ),
@@ -50,10 +55,28 @@ class GroupWidget extends StatelessWidget {
             ),
           ),
           // 图标和文字
-         SizedBox(
+         Container(
            width: double.infinity,
            height: double.infinity,
-           child: Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
+           alignment: subElements.isEmpty?Alignment.center: Alignment.centerRight,
+           padding: EdgeInsets.all(20 * element.zoom),
+           decoration: BoxDecoration(
+           ),
+           child: GestureDetector(
+             onTapDown: (details) =>tapLocation = details.globalPosition,
+             onTap: () {
+               onGoupPlusPressed!(tapLocation);
+             },
+             child: Container(
+              decoration: BoxDecoration(
+                color: subElements.isEmpty ?Colors.white: Color(0xFFf7f7f7),
+                borderRadius: BorderRadius.circular(5 * element.zoom),
+              ),
+               width: element.iconSize,
+               height: element.iconSize,
+               child: Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
+             ),
+           ),
          ),
           //  删除和编辑按钮
           isSelected ? Positioned(

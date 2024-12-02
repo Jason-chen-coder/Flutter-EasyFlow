@@ -22,6 +22,7 @@ class ElementWidget extends StatefulWidget {
     required this.element,
     super.key,
     this.onElementPressed,
+    this.onGoupPlusPressed,
     this.onElementSecondaryTapped,
     this.onElementLongPressed,
     this.onElementSecondaryLongTapped,
@@ -39,6 +40,8 @@ class ElementWidget extends StatefulWidget {
 
   ///
   final void Function(BuildContext context, Offset position)? onElementPressed;
+
+  final void Function(BuildContext context, Offset position)? onGoupPlusPressed;
 
   ///
   final void Function(BuildContext context, Offset position)?
@@ -134,7 +137,17 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = PlusWidget(element: widget.element);
       //  组节点
       case ElementKind.group:
-        element = GroupWidget(dashboard: widget.dashboard,element: widget.element);
+        element = GroupWidget(
+            dashboard: widget.dashboard,
+            onGoupPlusPressed:(position){
+              if (widget.onGoupPlusPressed != null) {
+                widget.onGoupPlusPressed!(
+                  context,
+                  position,
+                );
+              }
+            },
+            element: widget.element);
       case ElementKind.image:
         element = ImageWidget(element: widget.element);
     }
@@ -242,21 +255,25 @@ class _ElementWidgetState extends State<ElementWidget> {
   }
 
   Widget _buildDraggableWidget(Widget element) {
+    List<FlowElement> subElements = widget.dashboard.elements.where((ele) => ele.parentId == widget.element.id).toList();
     return Listener(
       onPointerDown: (event) {
         delta = event.localPosition;
       },
       child: Draggable<FlowElement>(
         data: widget.element,
-        childWhenDragging: const SizedBox.shrink(),
+        childWhenDragging: const SizedBox.shrink(),///拖拽过程中，原始拖拽位置上显示的组件
         feedback: Material(
           color: Colors.transparent,
           child: element,
-        ),
+        ),///当拖拽元素时显示的组件
         child: element,
         onDragUpdate: (details) {
           widget.element.changePosition(
             details.globalPosition - widget.dashboard.position - delta,
+            element: widget.element,
+            dashboard: widget.dashboard,
+            delta: details.delta,
           );
         },
         onDragEnd: (details) {
