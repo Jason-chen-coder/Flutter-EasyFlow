@@ -19,6 +19,7 @@ class ParallelogramWidget extends StatelessWidget {
       width: element.size.width,
       height: element.size.height,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           CustomPaint(
             size: element.size,

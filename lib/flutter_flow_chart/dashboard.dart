@@ -238,19 +238,17 @@ class Dashboard extends ChangeNotifier {
   }
   // TODO : 优化缩放
   void setFullView(){
-    if(elements.length<1){
+    if(elements.isEmpty){
       return;
     }
+    // 计算所有元素的包围区域
     RectangleBounds boundingBoxSize =calculateBoundingBox(elements);
-    print("boundingBoxSize.center====>${boundingBoxSize.center}");
-
-    // 将所有元素移动至画布中心
+    // 屏幕中心点
     final center = Offset(dashboardSize.width / 2, dashboardSize.height / 2);
+    gridBackgroundParams.offset = center;
+    // 区域偏移
     final currentDeviation = boundingBoxSize.center - center;
     double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize) +  zoomFactor - 1;
-
-    setDashboardPosition(position  + currentDeviation);
-    gridBackgroundParams.offset = center;
     for (final element in elements) {
       element.position -= currentDeviation;
       for (final next in element.next) {
@@ -849,7 +847,6 @@ class Dashboard extends ChangeNotifier {
     ArrowParams arrowParams, {
     bool notify = true,
   }) {
-    print("=-=======>addNextById-=====>arrowParams:${arrowParams.toMap()}");
     var found = 0;
     arrowParams.setScale(gridBackgroundParams.scale);
     for (var i = 0; i < elements.length; i++) {

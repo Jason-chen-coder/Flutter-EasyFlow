@@ -1,4 +1,6 @@
 // ignore: directives_ordering
+import 'dart:math';
+
 import 'package:diagram_flow/flutter_flow_chart/ui/draw_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -202,8 +204,13 @@ class _FlowChartState extends State<FlowChart> {
     var tapDownPos = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
 
-    return ClipRect(
-      child: Stack(
+    return
+      ClipRect(
+      child:
+        OverflowBox(
+        maxWidth: double.infinity,
+        maxHeight: double.infinity,
+      child:Stack(
         clipBehavior: Clip.none,
         children: [
           // 绘制背景网格
@@ -218,15 +225,15 @@ class _FlowChartState extends State<FlowChart> {
               onTap: widget.onDashboardTapped == null
                   ? null
                   : () => widget.onDashboardTapped!(
-                        gridKey.currentContext!,
-                        tapDownPos,
-                      ),
+                gridKey.currentContext!,
+                tapDownPos,
+              ),
               onLongPress: widget.onDashboardLongTapped == null
                   ? null
                   : () => widget.onDashboardLongTapped!(
-                        gridKey.currentContext!,
-                        tapDownPos,
-                      ),
+                gridKey.currentContext!,
+                tapDownPos,
+              ),
               onSecondaryTap: () {
                 widget.onDashboardSecondaryTapped?.call(
                   gridKey.currentContext!,
@@ -240,13 +247,26 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
-                // 监听 缩放 和 拖动 画布
+                // 获取所有节点中最大的右坐标
+                double maxRight = 0;
+                for (final element in widget.dashboard.elements) {
+                  maxRight = max(maxRight,element.size.width + element.handlerSize);
+                }
+                // 获取画布的最大右坐标
+                double maxCanvasRight = widget.dashboard.dashboardSize.width;
+                // 偏移
+                double screenDxOffset = maxRight - maxCanvasRight;
+                Offset screenOffset = Offset((screenDxOffset>0?(screenDxOffset+ 20/2):0), 0);
+                print("screenOffset===>${screenOffset}");
+                // 缩放画布
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
                     details.scale + _oldScaleUpdateDelta,
-                    focalPoint: details.focalPoint,
+                    focalPoint: details.focalPoint - screenOffset,
                   );
                 }
+
+                // 拖动画布
                 /// 设置网格相对位置
                 widget.dashboard.setDashboardPosition(
                   widget.dashboard.position + details.focalPointDelta,
@@ -261,7 +281,6 @@ class _FlowChartState extends State<FlowChart> {
                     }
                   }
                 }
-
                 widget.dashboard.gridBackgroundParams.offset =
                     details.focalPointDelta;
                 setState(() {});
@@ -303,71 +322,71 @@ class _FlowChartState extends State<FlowChart> {
               onElementSecondaryTapped: widget.onElementSecondaryTapped == null
                   ? null
                   : (context, position) => widget.onElementSecondaryTapped!(
-                        context,
-                        position,
-                        widget.dashboard.elements.elementAt(i),
-                      ),
+                context,
+                position,
+                widget.dashboard.elements.elementAt(i),
+              ),
               onElementLongPressed: widget.onElementLongPressed == null
                   ? null
                   : (context, position) => widget.onElementLongPressed!(
-                        context,
-                        position,
-                        widget.dashboard.elements.elementAt(i),
-                      ),
+                context,
+                position,
+                widget.dashboard.elements.elementAt(i),
+              ),
               onElementSecondaryLongTapped:
-                  widget.onElementSecondaryLongTapped == null
-                      ? null
-                      : (context, position) =>
-                          widget.onElementSecondaryLongTapped!(
-                            context,
-                            position,
-                            widget.dashboard.elements.elementAt(i),
-                          ),
+              widget.onElementSecondaryLongTapped == null
+                  ? null
+                  : (context, position) =>
+                  widget.onElementSecondaryLongTapped!(
+                    context,
+                    position,
+                    widget.dashboard.elements.elementAt(i),
+                  ),
               onHandlerPressed: widget.onHandlerPressed == null
                   ? null
                   : (context, position, handler, element) => widget
-                      .onHandlerPressed!(context, position, handler, element),
+                  .onHandlerPressed!(context, position, handler, element),
               onHandlerSecondaryTapped: widget.onHandlerSecondaryTapped == null
                   ? null
                   : (context, position, handler, element) =>
-                      widget.onHandlerSecondaryTapped!(
-                        context,
-                        position,
-                        handler,
-                        element,
-                      ),
+                  widget.onHandlerSecondaryTapped!(
+                    context,
+                    position,
+                    handler,
+                    element,
+                  ),
               onHandlerLongPressed: widget.onHandlerLongPressed == null
                   ? null
                   : (context, position, handler, element) =>
-                      widget.onHandlerLongPressed!(
-                        context,
-                        position,
-                        handler,
-                        element,
-                      ),
+                  widget.onHandlerLongPressed!(
+                    context,
+                    position,
+                    handler,
+                    element,
+                  ),
               onHandlerSecondaryLongTapped:
-                  widget.onHandlerSecondaryLongTapped == null
-                      ? null
-                      : (context, position, handler, element) =>
-                          widget.onHandlerSecondaryLongTapped!(
-                            context,
-                            position,
-                            handler,
-                            element,
-                          ),
+              widget.onHandlerSecondaryLongTapped == null
+                  ? null
+                  : (context, position, handler, element) =>
+                  widget.onHandlerSecondaryLongTapped!(
+                    context,
+                    position,
+                    handler,
+                    element,
+                  ),
             ),
           // 绘制连线
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
               DrawArrow(
-                  arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
-                  pivots: widget.dashboard.elements[i].next[n].pivots,
-                  key: UniqueKey(),
-                  srcElement: widget.dashboard.elements[i],
-                  destElement: widget
-                      .dashboard.elements[widget.dashboard.findElementIndexById(
-                    widget.dashboard.elements[i].next[n].destElementId,
-                  )],),
+                arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
+                pivots: widget.dashboard.elements[i].next[n].pivots,
+                key: UniqueKey(),
+                srcElement: widget.dashboard.elements[i],
+                destElement: widget
+                    .dashboard.elements[widget.dashboard.findElementIndexById(
+                  widget.dashboard.elements[i].next[n].destElementId,
+                )],),
           // 绘制连线上的plus点
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
@@ -383,10 +402,10 @@ class _FlowChartState extends State<FlowChart> {
                   onPlusNodePressed: (context, position) {
                     if (widget.onPlusNodePressed != null) {
                       widget.onPlusNodePressed!(
-                        context,
-                        position,
-                        widget.dashboard.elements[i],
-                        widget.dashboard.elements[widget.dashboard.findElementIndexById(
+                          context,
+                          position,
+                          widget.dashboard.elements[i],
+                          widget.dashboard.elements[widget.dashboard.findElementIndexById(
                             widget.dashboard.elements[i].next[n].destElementId,
                           )]
                       );
@@ -398,8 +417,8 @@ class _FlowChartState extends State<FlowChart> {
               if (widget.dashboard.elements[i].next[n].arrowParams.style ==
                   ArrowStyle.segmented)
                 for (int j = 0;
-                    j < widget.dashboard.elements[i].next[n].pivots.length;
-                    j++)
+                j < widget.dashboard.elements[i].next[n].pivots.length;
+                j++)
                   SegmentHandler(
                     key: UniqueKey(),
                     pivot: widget.dashboard.elements[i].next[n].pivots[j],
@@ -412,6 +431,7 @@ class _FlowChartState extends State<FlowChart> {
               style: widget.dashboard.defaultArrowStyle,
               dashboard: widget.dashboard),
         ],
+       ),
       ),
     );
   }

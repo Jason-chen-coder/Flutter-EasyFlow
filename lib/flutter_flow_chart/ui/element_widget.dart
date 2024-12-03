@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import '../objects/diamond_widget.dart';
@@ -205,6 +207,7 @@ class _ElementWidgetState extends State<ElementWidget> {
         width: widget.element.size.width + widget.element.handlerSize,
         height: widget.element.size.height + widget.element.handlerSize,
         child: Stack(
+          clipBehavior: Clip.none,
           children: [
             element,
             if (widget.element.isResizable) _buildResizeHandle(),
@@ -255,8 +258,19 @@ class _ElementWidgetState extends State<ElementWidget> {
   }
 
   Widget _buildDraggableWidget(Widget element) {
+    // 获取所有节点中最大的右坐标
+    double maxRight = 0;
+    for (final element in widget.dashboard.elements) {
+      maxRight = max(maxRight, element.size.width + element.handlerSize );
+    }
+    // 获取画布的最大右坐标
+    double maxCanvasRight = widget.dashboard.dashboardSize.width;
+    double screenDxOffset = maxRight - maxCanvasRight;
+    // 元素宽度大于dashboard时会将整个画布撑大，此时会导致元素产生偏移
+    Offset screenOffset = Offset((screenDxOffset>0?screenDxOffset/2:0), 0);
     return Listener(
       onPointerDown: (event) {
+        // 点击事件相对于父节点的局部坐标(含handlerSize)
         delta = event.localPosition;
       },
       child: Draggable<FlowElement>(
@@ -269,7 +283,8 @@ class _ElementWidgetState extends State<ElementWidget> {
         child: element,
         onDragUpdate: (details) {
           widget.element.changePosition(
-            details.globalPosition - widget.dashboard.position - delta,
+            /// 当前拖动的位置相对于屏幕的全局坐标 - 画布相对于全局坐标的位置 - 偏移 (保证更新的是当前拖动元素的左上角位置)
+            details.globalPosition - widget.dashboard.position - delta + screenOffset,
             element: widget.element,
             dashboard: widget.dashboard,
             delta: details.delta,
@@ -277,7 +292,7 @@ class _ElementWidgetState extends State<ElementWidget> {
         },
         onDragEnd: (details) {
           widget.element
-              .changePosition(details.offset - widget.dashboard.position);
+              .changePosition(details.offset - widget.dashboard.position + screenOffset);
         },
       ),
     );
