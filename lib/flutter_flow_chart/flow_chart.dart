@@ -240,16 +240,18 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
-                // 监听画布缩放
+                // 监听 缩放 和 拖动 画布
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
                     details.scale + _oldScaleUpdateDelta,
                     focalPoint: details.focalPoint,
                   );
                 }
+                /// 设置网格相对位置
                 widget.dashboard.setDashboardPosition(
                   widget.dashboard.position + details.focalPointDelta,
                 );
+                /// 设置节点的位置
                 for (var i = 0; i < widget.dashboard.elements.length; i++) {
                   widget.dashboard.elements[i].position +=
                       details.focalPointDelta;

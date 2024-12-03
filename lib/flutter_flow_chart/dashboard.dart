@@ -371,27 +371,28 @@ class Dashboard extends ChangeNotifier {
     // setFullView();
   }
 
-  // 组节点添加新节点
+  /// 从组节点添加新节点
   void addElementByGroupPlus(FlowElement groupElement, FlowElement orderElement) {
-    // 计算group的padding
+    /// 计算group的padding
     final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
-    // 找到属于groupElement的所有子Element
+    /// 找到属于groupElement的所有子Element
     List<FlowElement> subElements = elements.where((ele) => ele.parentId == groupElement.id).toList();
     if(subElements.isNotEmpty){
       final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
-      // 更新组节点的宽度
+      /// 更新组节点的宽度
       groupElement.size = Size(groupElement.size.width+offsetWidth, groupElement.size.height);
-      // 更新组节点及其子节点的位置
+      /// 更新组节点及其子节点的位置
       groupElement.position = Offset(groupElement.position.dx - offsetWidth/2, groupElement.position.dy);
       for(final element in subElements){
         element.changePosition(Offset(element.position.dx - offsetWidth/2, element.position.dy));
       }
     }
-      // 新增节点
+      /// 新增节点
       final elementDx = groupElement.position.dx + currentGroupElementSpacing + subElements.length * (orderElement.size.width + currentGroupElementSpacing);
       final elementDy = groupElement.position.dy + (groupElement.size.height - orderElement.size.height)/2;
       orderElement.position = Offset(elementDx, elementDy);
       addElement(orderElement);
+      setSelectedElement(orderElement.id);
   }
 
   void addElementConnection(FlowElement fromElement, FlowElement toElement) {
@@ -528,7 +529,7 @@ class Dashboard extends ChangeNotifier {
     return null;
   }
 
-  /// remove all elements
+  /// 移除所有节点
   void removeAllElements({bool notify = true}) {
     elements.clear();
     if (notify) notifyListeners();
@@ -801,20 +802,21 @@ class Dashboard extends ChangeNotifier {
     focalPoint ??= Offset(dashboardSize.width / 2, dashboardSize.height / 2);
 
     for (final element in elements) {
-      // applying new zoom
       element
         ..position = (element.position - focalPoint) /
                 gridBackgroundParams.scale *
                 factor +
             focalPoint
         ..setScale(gridBackgroundParams.scale, factor);
-      // draw_arrow 添加 setScale方法
+      /// 折线点的缩放
       for (final conn in element.next) {
         for (final pivot in conn.pivots) {
           pivot.setScale(gridBackgroundParams.scale, focalPoint, factor);
         }
       }
     }
+
+    /// 更新背景网格尺寸
     gridBackgroundParams.setScale(factor, focalPoint);
 
     notifyListeners();
@@ -825,7 +827,7 @@ class Dashboard extends ChangeNotifier {
     return gridBackgroundParams.scale;
   }
 
-  // 需要知道图表组件的位置以计算拖放元素的偏移量
+  // 图表组件的位置以计算拖放元素的偏移量
   void setDashboardPosition(Offset position) {
     _dashboardPosition = position;
   }

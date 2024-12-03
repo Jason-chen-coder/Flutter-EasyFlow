@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Defines grid parameters.
+/// 网格参数
 class GridBackgroundParams extends ChangeNotifier {
-  /// [gridSquare] is the raw size of the grid square when scale is 1
+  /// [gridSquare] 表示当缩放比例为1时网格单元的原始大小
   GridBackgroundParams({
     double gridSquare = 20.0,
-    this.gridThickness = 0.7,
     this.secondarySquareStep = 5,
     // 画布背景颜色
     this.backgroundColor =  const Color(0xFFf8f8f8),
@@ -21,7 +20,6 @@ class GridBackgroundParams extends ChangeNotifier {
   factory GridBackgroundParams.fromMap(Map<String, dynamic> map) {
     final params = GridBackgroundParams(
       gridSquare: map['gridSquare'] as double? ?? 20.0,
-      gridThickness: map['gridThickness'] as double? ?? 0.7,
       secondarySquareStep: map['secondarySquareStep'] as int? ?? 5,
       backgroundColor: Color(map['backgroundColor'] as int? ?? 0xFFFFFFFF),
       gridColor: Color(map['gridColor'] as int? ?? 0xFFABABAB),
@@ -35,48 +33,45 @@ class GridBackgroundParams extends ChangeNotifier {
     return params;
   }
 
-  /// Unscaled size of the grid square
-  /// i.e. the size of the square when scale is 1
+  /// 未缩放时的网格单元大小
+  /// 即当缩放比例为1时的网格单元大小
   final double rawGridSquareSize;
 
-  /// Thickness of lines.
-  final double gridThickness;
-
-  /// How many vertical or horizontal lines to draw the marked lines.
+  /// 每多少个垂直或水平线绘制标记线
   final int secondarySquareStep;
 
-  /// Grid background color.
+  /// 网格背景颜色
   final Color backgroundColor;
 
-  /// Grid lines color.
+  /// 网格线条颜色
   final Color gridColor;
 
-  /// offset to move the grid
+  /// 偏移量，用于移动网格
   Offset _offset = Offset.zero;
 
-  /// Scale of the grid.
+  /// 网格的缩放比例
   double scale = 1;
 
-  /// Add listener for scaling
+  /// 添加缩放监听器
   void addOnScaleUpdateListener(void Function(double scale) listener) {
       print("=addOnScaleUpdateListener===========>");
       _onScaleUpdateListeners.add(listener);
   }
 
-  /// Remove listener for scaling
+  /// 移除缩放监听器
   void removeOnScaleUpdateListener(void Function(double scale) listener) {
     _onScaleUpdateListeners.remove(listener);
   }
 
   final List<void Function(double scale)> _onScaleUpdateListeners = [];
 
-  ///
+  /// 设置偏移量
   set offset(Offset delta) {
     _offset += delta;
     notifyListeners();
   }
 
-  ///
+  /// 设置缩放比例
   void setScale(double factor, Offset focalPoint) {
     _offset = Offset(
       focalPoint.dx * (1 - factor),
@@ -90,20 +85,19 @@ class GridBackgroundParams extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// size of the grid square with scale applied
+  /// 获取缩放后的网格单元大小
   double get gridSquare => rawGridSquareSize * scale;
 
-  ///
+  /// 获取偏移量
   Offset get offset => _offset;
 
-  ///
+  /// 将参数转换为Map
   Map<String, dynamic> toMap() {
     return {
       'offset.dx': _offset.dx,
       'offset.dy': _offset.dy,
       'scale': scale,
       'gridSquare': rawGridSquareSize,
-      'gridThickness': gridThickness,
       'secondarySquareStep': secondarySquareStep,
       'backgroundColor': backgroundColor.value,
       'gridColor': gridColor.value,
@@ -111,7 +105,7 @@ class GridBackgroundParams extends ChangeNotifier {
   }
 }
 
-/// Uses a CustomPainter to draw a grid with the given parameters
+/// 使用CustomPainter绘制带有给定参数的网格
 class GridBackground extends StatelessWidget {
   GridBackground({
     super.key,

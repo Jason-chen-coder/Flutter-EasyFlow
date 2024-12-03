@@ -48,12 +48,10 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                   _displayPlusElementMenu(context, position, sourceElement);
                 },
                 onGoupPlusPressed: (context, position, element) {
-                  print("onGoupPlusPressed=====>${element}");
                   _displayGroupPlusElementMenu(context, position, element);
                 },
                 onScaleUpdate: (newScale) {},
                 onDashboardLongTapped: (context, position) {
-                  debugPrint('onDashboardLongTapped position: $position');
                   final flowElement = FlowElement(
                     size: Size(36, 36),
                     elevation: 0,
@@ -72,7 +70,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                 },
                 // 单击元素时的回调
                 onElementPressed: (context, position, element) {
-                  print("onElementPressed=====>${element}");
                   dashboard.setSelectedElement(element.id);
                 }),
           ),
@@ -80,6 +77,27 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               left: 50,
               bottom: 50,
               child: Column(children: [
+                // 清空
+                Container(
+                    width: 36,
+                    height: 36,
+                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        backgroundColor: Color(0xFFffffff),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5)),
+                      ),
+                      onPressed: () {
+                        dashboard.removeAllElements();
+                        _initStartElements();
+                      },
+                      child: Icon(
+                          Icons.cleaning_services_outlined,
+                          color: const Color(0xFF8D8C8D),
+                          size: 20),
+                    )),
                 // 放大
                 Container(
                     width: 36,
@@ -158,7 +176,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                           size: 20),
                     ))
               ]))
-          // 定位至画布中心
         ],
       ),
     );

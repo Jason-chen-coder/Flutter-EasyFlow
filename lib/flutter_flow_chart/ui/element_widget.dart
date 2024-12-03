@@ -207,7 +207,7 @@ class _ElementWidgetState extends State<ElementWidget> {
         child: Stack(
           children: [
             element,
-            if (true||widget.element.isResizable) _buildResizeHandle(),
+            if (widget.element.isResizable) _buildResizeHandle(),
             if (widget.element.isDeletable) _buildDeleteHandle(),
           ],
         ),
@@ -255,7 +255,6 @@ class _ElementWidgetState extends State<ElementWidget> {
   }
 
   Widget _buildDraggableWidget(Widget element) {
-    List<FlowElement> subElements = widget.dashboard.elements.where((ele) => ele.parentId == widget.element.id).toList();
     return Listener(
       onPointerDown: (event) {
         delta = event.localPosition;
