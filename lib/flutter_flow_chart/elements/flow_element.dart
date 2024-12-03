@@ -316,9 +316,11 @@ class FlowElement extends ChangeNotifier {
     subTitleTextSize = subTitleTextSize * newScaleFactor;
     iconSize = iconSize * newScaleFactor;
 
-    // 处理线和锚点
-    for (final element in next) {
-      element.arrowParams.setScale(newScaleFactor);
+    if(currentZoom != 1){
+      // 处理线和锚点
+      for (final element in next) {
+        element.arrowParams.setScale(newScaleFactor);
+      }
     }
     notifyListeners();
   }

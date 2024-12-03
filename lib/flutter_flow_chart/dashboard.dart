@@ -375,24 +375,29 @@ class Dashboard extends ChangeNotifier {
     final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
     /// 找到属于groupElement的所有子Element
     List<FlowElement> subElements = elements.where((ele) => ele.parentId == groupElement.id).toList();
-    if(subElements.isNotEmpty){
-      final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
-      /// 更新组节点的宽度
-      groupElement.size = Size(groupElement.size.width+offsetWidth, groupElement.size.height);
-      /// 更新组节点及其子节点的位置
-      groupElement.position = Offset(groupElement.position.dx - offsetWidth/2, groupElement.position.dy);
-      for(final element in subElements){
-        element.changePosition(Offset(element.position.dx - offsetWidth/2, element.position.dy));
-      }
-    }
-      /// 新增节点
-      final elementDx = groupElement.position.dx + currentGroupElementSpacing + subElements.length * (orderElement.size.width + currentGroupElementSpacing);
-      final elementDy = groupElement.position.dy + (groupElement.size.height - orderElement.size.height)/2;
-      orderElement.position = Offset(elementDx, elementDy);
+      /// 新增节点(节点先进画布，获取真实宽高)
       addElement(orderElement);
-      setSelectedElement(orderElement.id);
+      final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
+      ///  更新组节点大小
+      if(subElements.isNotEmpty){
+        final groupElementSize = Size(groupElement.size.width + orderElement.size.width + currentGroupElementSpacing,groupElement.size.height);
+        groupElement.size = groupElementSize;
+        ///   更新组节点位置
+        groupElement.position = Offset(groupElement.position.dx-offsetWidth/2,groupElement.position.dy );
+      }
+      ///  组内的子节点重新排列
+     updateGroupSubElementLayout(groupElement);
+     setSelectedElement(orderElement.id);
   }
-
+  void updateGroupSubElementLayout(FlowElement groupElement){
+    final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
+    List<FlowElement> subElements = elements.where((ele) => ele.parentId == groupElement.id).toList();
+    for (var i = 0; i < subElements.length; i++) {
+      final element = subElements[i];
+      final elementDx = groupElement.position.dx + currentGroupElementSpacing + i * (element.size.width + currentGroupElementSpacing);
+      element.changePosition(Offset(elementDx,groupElement.position.dy + (groupElement.size.height - subElements.first.size.height)/2));
+    }
+  }
   void addElementConnection(FlowElement fromElement, FlowElement toElement) {
     addNextById(
       fromElement,
@@ -708,11 +713,7 @@ class Dashboard extends ChangeNotifier {
       //   更新组节点位置
         groupElement.position = Offset(groupElement.position.dx+offsetWidth/2,groupElement.position.dy );
         //  子节点重新排列
-        for (var i = 0; i < subElements.length; i++) {
-          final element = subElements[i];
-          final elementDx = groupElement.position.dx + currentGroupElementSpacing + i * (element.size.width + currentGroupElementSpacing);
-          element.changePosition(Offset(elementDx,element.position.dy));
-        }
+        updateGroupSubElementLayout(groupElement);
       }
     }
     // 如果有后续节点的布局需要更新
@@ -725,7 +726,7 @@ class Dashboard extends ChangeNotifier {
   }
 
   updateLayOutAfterDelElement(FlowElement deletedElement,FlowElement? sourceElement){
-    // 调整所有后续节点的垂直位置(将被删除的元素一下的所有元素向上移动)
+    // 调整所有后续节点的垂直位置(将被删除的元素以下的所有元素向上移动)
     for (var element in elements) {
       if (element.position.dy >= deletedElement.position.dy - defaultNodeDistance * zoomFactor) {
         element.position = Offset(
@@ -848,6 +849,7 @@ class Dashboard extends ChangeNotifier {
     bool notify = true,
   }) {
     var found = 0;
+    print("=====>addNextById:${gridBackgroundParams.scale}");
     arrowParams.setScale(gridBackgroundParams.scale);
     for (var i = 0; i < elements.length; i++) {
       if (elements[i].id == destId) {

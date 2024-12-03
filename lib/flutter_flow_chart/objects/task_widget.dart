@@ -90,7 +90,7 @@ class TaskWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      // "${element.position.dy} ${ element.size.width}",
+                      // "${element.position.dx}",
                       element.text,
                       style: titleTextStyle,
                     ),

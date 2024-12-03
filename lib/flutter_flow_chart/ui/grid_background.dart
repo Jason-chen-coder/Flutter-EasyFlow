@@ -73,6 +73,8 @@ class GridBackgroundParams extends ChangeNotifier {
 
   /// 设置缩放比例
   void setScale(double factor, Offset focalPoint) {
+    print("=====grid_background_params===>setScale==>factor:${factor}");
+    print("=====grid_background_params===>setScale==>focalPoint:${focalPoint}");
     _offset = Offset(
       focalPoint.dx * (1 - factor),
       focalPoint.dy * (1 - factor),

@@ -247,25 +247,13 @@ class _FlowChartState extends State<FlowChart> {
                 );
               },
               onScaleUpdate: (details) {
-                // 获取所有节点中最大的右坐标
-                double maxRight = 0;
-                for (final element in widget.dashboard.elements) {
-                  maxRight = max(maxRight,element.size.width + element.handlerSize);
-                }
-                // 获取画布的最大右坐标
-                double maxCanvasRight = widget.dashboard.dashboardSize.width;
-                // 偏移
-                double screenDxOffset = maxRight - maxCanvasRight;
-                Offset screenOffset = Offset((screenDxOffset>0?(screenDxOffset+ 20/2):0), 0);
-                print("screenOffset===>${screenOffset}");
                 // 缩放画布
                 if (details.scale != 1) {
                   widget.dashboard.setZoomFactor(
                     details.scale + _oldScaleUpdateDelta,
-                    focalPoint: details.focalPoint - screenOffset,
+                    focalPoint: details.focalPoint,
                   );
                 }
-
                 // 拖动画布
                 /// 设置网格相对位置
                 widget.dashboard.setDashboardPosition(
@@ -297,7 +285,7 @@ class _FlowChartState extends State<FlowChart> {
           // TODO: 优化渲染逻辑：不需要重新遍历那么多次
           // 绘制 elements
           for (int i = 0; i < widget.dashboard.elements.length; i++)
-            ElementWidget(
+           ElementWidget(
               key: UniqueKey(),
               dashboard: widget.dashboard,
               element: widget.dashboard.elements.elementAt(i),
@@ -387,7 +375,7 @@ class _FlowChartState extends State<FlowChart> {
                     .dashboard.elements[widget.dashboard.findElementIndexById(
                   widget.dashboard.elements[i].next[n].destElementId,
                 )],),
-          // 绘制连线上的plus点
+          // 绘制连线之间的加号
           for (int i = 0; i < widget.dashboard.elements.length; i++)
             for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
               DrawPlus(

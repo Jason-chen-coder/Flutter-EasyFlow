@@ -74,7 +74,7 @@ class GroupWidget extends StatelessWidget {
               ),
                width: element.iconSize,
                height: element.iconSize,
-               child: Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
+               child:  Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
              ),
            ),
          ),
