@@ -1,7 +1,7 @@
 // ignore: directives_ordering
 import 'dart:math';
 
-import 'package:diagram_flow/flutter_flow_chart/ui/draw_plus.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/ui/draw_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

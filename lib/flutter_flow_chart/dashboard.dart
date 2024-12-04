@@ -5,12 +5,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:diagram_flow/flutter_flow_chart/ui/draw_arrow.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/ui/draw_arrow.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import './ui/segment_handler.dart';
 import 'package:uuid/uuid.dart';
 

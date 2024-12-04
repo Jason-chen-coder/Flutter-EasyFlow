@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import './segment_handler.dart';

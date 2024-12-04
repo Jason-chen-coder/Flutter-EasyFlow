@@ -1,4 +1,4 @@
-# diagram_flow
+# flutter_easy_flow
 
 A new Flutter project.
 

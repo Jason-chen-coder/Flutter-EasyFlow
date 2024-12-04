@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import './element_settings_menu.dart';
 import './platforms/hooks_mobile.dart'
-if (dart.library.js) 'package:example/platforms/hooks_web.dart';
+if (dart.library.js) './platforms/hooks_web.dart';
 import './text_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:star_menu/star_menu.dart';
 
 class DefaultFlowChart extends StatefulWidget {

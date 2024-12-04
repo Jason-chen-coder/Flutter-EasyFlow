@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:flutter_svg/svg.dart';
 import './connection_params.dart';
 import 'package:uuid/uuid.dart';

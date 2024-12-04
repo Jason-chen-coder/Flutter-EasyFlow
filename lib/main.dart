@@ -1,9 +1,8 @@
 // ignore_for_file: public_member_api_docs
 
-import 'package:diagram_flow/pages/custom_flow_chart.dart';
-import 'package:diagram_flow/pages/default_flow_chart.dart';
+import 'package:flutter_easy_flow/pages/custom_flow_chart.dart';
+import 'package:flutter_easy_flow/pages/default_flow_chart.dart';
 
-import 'pages/element_settings_menu.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -26,8 +25,8 @@ class MyApp extends StatelessWidget {
           labelStyle: TextStyle(color: Colors.white), // 设置ActionChip的文本样式
         ),
         listTileTheme: ListTileThemeData(
-          selectedTileColor: Colors.blue[50],  // Tile选中的背景色
-          selectedColor: Colors.blue,         // Tile选中的字体颜色
+          selectedTileColor: Colors.blue[50],
+          selectedColor: Colors.blue,
         ),
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
       ),

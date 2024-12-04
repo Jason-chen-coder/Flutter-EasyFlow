@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:web/web.dart' as web;
 
 /// Save dashboard to file

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:diagram_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 
 /// Widget that use the element properties to display it on the dashboard scene.
 class SegmentHandler extends StatefulWidget {
