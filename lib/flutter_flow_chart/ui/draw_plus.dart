@@ -108,7 +108,9 @@ class _DrawArrowState extends State<DrawPlus> {
                   Radius.circular(widget.destElement.borderRadius),
                 ),
               ),
-              child: Icon(
+              child:
+              // Text("${pivotPlus.dy}"),
+              Icon(
                 Icons.add,
                 color: const Color(0xFF31DA9F),
                 size:textSize,

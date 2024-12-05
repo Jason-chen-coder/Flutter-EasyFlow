@@ -74,13 +74,10 @@ class TaskWidget extends StatelessWidget {
                     width: 1,
                   ),
                 ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8* element.zoom),
-                  child: SvgPicture.asset(
-                    'svg/ic_${TaskTypeExtension(element.taskType).toStringValue}.svg',
-                    // placeholderBuilder: (context) =>
-                    //     CircularProgressIndicator(),
-                  ),
+                child: SvgPicture.asset(
+                  'svg/ic_${TaskTypeExtension(element.taskType).toStringValue}.svg',
+                  // placeholderBuilder: (context) =>
+                  //     CircularProgressIndicator(),
                 ),
               ),
               // 文字
@@ -90,7 +87,7 @@ class TaskWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      // "${element.position.dx}",
+                      // "${element.position.dy}",
                       element.text,
                       style: titleTextStyle,
                     ),

@@ -43,7 +43,7 @@ class PlusWidget extends StatelessWidget {
            width: double.infinity,
            height: double.infinity,
            child:
-           // Text("${element.position.dx}")
+           // Text("${element.position.dy}")
            Icon(Icons.add, color: Color(0xFF31DA9F), size: element.iconSize),
          )
         ],

@@ -126,7 +126,7 @@ class Dashboard extends ChangeNotifier {
   Offset _dashboardPosition;
 
   // 节点间默认距离
-  int defaultNodeDistance = 65;
+  int defaultNodeDistance = 80;
 
   /// Dashboard size
   Size dashboardSize;
@@ -310,6 +310,10 @@ class Dashboard extends ChangeNotifier {
   }
 
   void addElementByPlus(FlowElement sourceElement, FlowElement orderElement) {
+    final sourceElementIndex = elements.indexOf(sourceElement);
+    final newElementDistance = orderElement.position.dy - sourceElement.position.dy;
+    // 新增节点
+    addElement(orderElement,position: sourceElementIndex+1);
     List<ConnectionParams> nextElementsConnectionParams = sourceElement.next;
     List<String> removedConnectDestElementIds = [];
     if (nextElementsConnectionParams.isNotEmpty) {
@@ -323,14 +327,28 @@ class Dashboard extends ChangeNotifier {
         removedConnectDestElementIds.add(params.destElementId);
       }
       // 调整所有后续节点的垂直位置
-      for (var element in elements) {
-        if (element.position.dy >= orderElement.position.dy - defaultNodeDistance * zoomFactor) {
+      final orderElementIndex = elements.indexOf(orderElement);
+      for (int i = 0; i < elements.length; i++) {
+        final element = elements[i];
+        String elementGroupId = element.taskType != TaskType.group ? element.parentId : "";
+        int elementGroupIndex = elementGroupId == '' ? -1: elements.indexOf(elements.firstWhere((el) => el.id ==elementGroupId));
+        if(i > orderElementIndex && (elementGroupId==''? true: elementGroupIndex>orderElementIndex)){
           element.position = Offset(
             element.position.dx,
-            element.position.dy + (orderElement.size.height + orderElement.handlerSize +  defaultNodeDistance ) * zoomFactor,
+            element.position.dy + newElementDistance,
           );
         }
       }
+      // 连接新节点
+      addNextById(
+        sourceElement,
+        orderElement.id,
+        DrawingArrow.instance.params.copyWith(
+          style: ArrowStyle.rectangular,
+          startArrowPosition: Alignment.bottomCenter,
+          endArrowPosition: Alignment.topCenter,
+        ),
+      );
       // 恢复之前移除的连接，将orderElement连接到destElementId节点
       for (final destElementId in removedConnectDestElementIds) {
         addNextById(
@@ -343,29 +361,9 @@ class Dashboard extends ChangeNotifier {
           ),
         );
       }
-
-      // 新增节点
-      addElement(orderElement);
-      // 连接新节点
-      addNextById(
-        sourceElement,
-        orderElement.id,
-        DrawingArrow.instance.params.copyWith(
-          style: ArrowStyle.rectangular,
-          startArrowPosition: Alignment.bottomCenter,
-          endArrowPosition: Alignment.topCenter,
-        ),
-      );
       // 选中当前节点
       setSelectedElement(orderElement.id);
     }
-
-    // 添加 orderElement 节点及其与 plus 节点的连接
-    // _addElementWithConnection(plusElement, orderElement);
-
-    // 如果是终止任务节点，直接返回
-    // if (orderElement.taskType == TaskType.end) return;
-
     // setFullView();
   }
 
@@ -389,6 +387,24 @@ class Dashboard extends ChangeNotifier {
      updateGroupSubElementLayout(groupElement);
      setSelectedElement(orderElement.id);
   }
+
+  Offset getNextElementPosition(FlowElement sourceElement){
+    final newElementDx =
+        sourceElement.getHandlerPosition(Alignment.bottomCenter).dx;
+    // 上下锚点距离 + 节点高度
+    final newElementDistance = ((sourceElement.handlerSize) * 2 + sourceElement.size.height + sourceElement.handlerSize/2) + (defaultNodeDistance * 2);
+    print("=getNextElementPosition=======>zoomFactor:${zoomFactor}");
+    final handlerSizeScaled = sourceElement.handlerSize / zoomFactor;
+    final totalHandlerHeight = handlerSizeScaled * 2;
+    final adjustedNodeDistance = defaultNodeDistance * 2 * zoomFactor;
+
+    final newElementDy = sourceElement.position.dy +
+        totalHandlerHeight +
+        sourceElement.size.height +
+        adjustedNodeDistance;
+    return Offset(newElementDx, newElementDy);
+  }
+
   void updateGroupSubElementLayout(FlowElement groupElement){
     final currentGroupElementSpacing = groupElementSpacing*zoomFactor;
     List<FlowElement> subElements = elements.where((ele) => ele.parentId == groupElement.id).toList();
@@ -708,9 +724,9 @@ class Dashboard extends ChangeNotifier {
         final offsetWidth = (removedElement.size.width + currentGroupElementSpacing);
 
         final groupElementSize = Size(groupElement.size.width - removedElement.size.width - currentGroupElementSpacing,groupElement.size.height);
-      //  更新组节点大小
+        //  更新组节点大小
         groupElement.size = groupElementSize;
-      //   更新组节点位置
+        //  更新组节点位置
         groupElement.position = Offset(groupElement.position.dx+offsetWidth/2,groupElement.position.dy );
         //  子节点重新排列
         updateGroupSubElementLayout(groupElement);
@@ -726,17 +742,18 @@ class Dashboard extends ChangeNotifier {
   }
 
   updateLayOutAfterDelElement(FlowElement deletedElement,FlowElement? sourceElement){
+
     // 调整所有后续节点的垂直位置(将被删除的元素以下的所有元素向上移动)
     for (var element in elements) {
       if (element.position.dy >= deletedElement.position.dy - defaultNodeDistance * zoomFactor) {
         element.position = Offset(
           element.position.dx,
-          element.position.dy - (deletedElement.size.height + deletedElement.handlerSize +  defaultNodeDistance ) * zoomFactor,
+          element.position.dy - (deletedElement.size.height + deletedElement.handlerSize +  defaultNodeDistance*2 ) * zoomFactor,
         );
       }
     }
     //  被删除节点的连接点
-    // 抓到被删除节点的上一个节点
+    // 抓到被删除节点的下一个节点
     List<ConnectionParams> deletedElementConnectionParams = deletedElement.next;
     List<String> removedConnectDestElementIds = [];
     if (deletedElementConnectionParams.isNotEmpty) {

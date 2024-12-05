@@ -59,7 +59,6 @@ class GroupWidget extends StatelessWidget {
            width: double.infinity,
            height: double.infinity,
            alignment: subElements.isEmpty?Alignment.center: Alignment.centerRight,
-           padding: EdgeInsets.all(20 * element.zoom),
            decoration: BoxDecoration(
            ),
            child: GestureDetector(
@@ -68,6 +67,7 @@ class GroupWidget extends StatelessWidget {
                onGoupPlusPressed!(tapLocation);
              },
              child: Container(
+               margin: EdgeInsets.only(right: (subElements.isEmpty?0:10 )* element.zoom),
               decoration: BoxDecoration(
                 color: subElements.isEmpty ?Colors.white: Color(0xFFf7f7f7),
                 borderRadius: BorderRadius.circular(5 * element.zoom),

@@ -45,7 +45,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                 dashboard: dashboard,
                 onPlusNodePressed:
                     (context, position, sourceElement, destElement) {
-                  _displayPlusElementMenu(context, position, sourceElement);
+                      _displayPlusElementMenu(context, position, sourceElement);
                 },
                 onGoupPlusPressed: (context, position, element) {
                   _displayGroupPlusElementMenu(context, position, element);
@@ -175,7 +175,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                           color: const Color(0xFF8D8C8D),
                           size: 20),
                     ))
-              ]))
+              ])),
         ],
       ),
     );
@@ -206,14 +206,11 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
           ActionChip(
             label: const Text('Add Delay'),
             onPressed: () {
+
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(
-                        position.dx,
-                        position.dy +
-                            dashboard.defaultNodeDistance *
-                                dashboard.zoomFactor),
+                    position: dashboard.getNextElementPosition(sourceElement),
                     text: 'Delay',
                     subTitleText: "wait for 12 minutes",
                     taskType: TaskType.delay,
@@ -231,11 +228,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(
-                        position.dx,
-                        position.dy +
-                            dashboard.defaultNodeDistance *
-                                dashboard.zoomFactor),
+                    position:dashboard.getNextElementPosition(sourceElement),
                     text: 'Timer Out',
                     subTitleText: "just 2 minutes",
                     taskType: TaskType.timeout,
@@ -253,11 +246,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position: Offset(
-                        position.dx,
-                        position.dy +
-                            dashboard.defaultNodeDistance *
-                                dashboard.zoomFactor),
+                    position:dashboard.getNextElementPosition(sourceElement),
                     text: 'Grab Samples',
                     subTitleText: "grab 2 PCR samples",
                     taskType: TaskType.grab,
@@ -355,8 +344,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   void _addGroupNode(Offset position, FlowElement sourceElement) {
     final groupElement = FlowElement(
       size: Size(400, 80),
-      position: Offset(position.dx,
-          position.dy + dashboard.defaultNodeDistance * dashboard.zoomFactor),
+      position: dashboard.getNextElementPosition(sourceElement),
       text: 'Group',
       taskType: TaskType.group,
       kind: ElementKind.group,
@@ -387,16 +375,8 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     dashboard.addElement(
       startElement,
     );
-
-    final groupElementDx =
-        startElement.getHandlerPosition(Alignment.bottomCenter).dx;
-    final groupElementDy = startElement.position.dy +
-        ((startElement.handlerSize) * 2 +
-            startElement.size.height +
-            startElement.handlerSize) +
-        (dashboard.defaultNodeDistance * 2 * dashboard.zoomFactor);
     final groupElement = FlowElement(
-      position: Offset(groupElementDx, groupElementDy),
+      position:dashboard.getNextElementPosition(startElement),
       text: 'Group',
       size: Size(400, 80),
       iconSize: 36,
@@ -412,18 +392,8 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     );
     dashboard.addElementConnection(startElement, groupElement);
 
-    //
-    final endElementDx =
-        startElement.getHandlerPosition(Alignment.bottomCenter).dx;
-
-    final endElementDy = groupElement.position.dy +
-        ((groupElement.handlerSize) * 2 +
-            groupElement.size.height +
-            groupElement.handlerSize) +
-        (dashboard.defaultNodeDistance * 2 * dashboard.zoomFactor);
-
     final endElement = FlowElement(
-      position: Offset(endElementDx, endElementDy),
+      position:dashboard.getNextElementPosition(groupElement),
       text: 'End Process',
       subTitleText: "end of workflows",
       taskType: TaskType.end,
