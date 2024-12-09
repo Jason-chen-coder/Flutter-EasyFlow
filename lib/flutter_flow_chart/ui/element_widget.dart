@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
+
 import '../objects/diamond_widget.dart';
 import '../objects/group_widget.dart';
 import '../objects/hexagon_widget.dart';
@@ -12,7 +13,6 @@ import '../objects/plus_widget.dart';
 import '../objects/rectangle_widget.dart';
 import '../objects/storage_widget.dart';
 import '../objects/task_widget.dart';
-
 import './element_handlers.dart';
 import './handler_widget.dart';
 
@@ -133,7 +133,8 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = RectangleWidget(element: widget.element);
       //   任务节点
       case ElementKind.task:
-        element = TaskWidget(dashboard: widget.dashboard,element: widget.element);
+        element =
+            TaskWidget(dashboard: widget.dashboard, element: widget.element);
       //   plus节点
       case ElementKind.plus:
         element = PlusWidget(element: widget.element);
@@ -141,7 +142,7 @@ class _ElementWidgetState extends State<ElementWidget> {
       case ElementKind.group:
         element = GroupWidget(
             dashboard: widget.dashboard,
-            onGoupPlusPressed:(position){
+            onGoupPlusPressed: (position) {
               if (widget.onGoupPlusPressed != null) {
                 widget.onGoupPlusPressed!(
                   context,
@@ -261,13 +262,14 @@ class _ElementWidgetState extends State<ElementWidget> {
     // 获取所有节点中最大的右坐标
     double maxRight = 0;
     for (final element in widget.dashboard.elements) {
-      maxRight = max(maxRight, element.size.width + element.handlerSize );
+      maxRight = max(maxRight, element.size.width + element.handlerSize);
     }
     // 获取画布的最大右坐标
     double maxCanvasRight = widget.dashboard.dashboardSize.width;
     double screenDxOffset = maxRight - maxCanvasRight;
     // 元素宽度大于dashboard时会将整个画布撑大，此时会导致元素产生偏移
-    Offset screenOffset = Offset((screenDxOffset>0?screenDxOffset/2:0), 0);
+    Offset screenOffset =
+        Offset((screenDxOffset > 0 ? screenDxOffset / 2 : 0), 0);
     return Listener(
       onPointerDown: (event) {
         // 点击事件相对于父节点的局部坐标(含handlerSize)
@@ -275,24 +277,31 @@ class _ElementWidgetState extends State<ElementWidget> {
       },
       child: Draggable<FlowElement>(
         data: widget.element,
-        childWhenDragging: const SizedBox.shrink(),///拖拽过程中，原始拖拽位置上显示的组件
+        childWhenDragging: const SizedBox.shrink(),
+
+        ///拖拽过程中，原始拖拽位置上显示的组件
         feedback: Material(
           color: Colors.transparent,
           child: element,
-        ),///当拖拽元素时显示的组件
+        ),
+
+        ///当拖拽元素时显示的组件
         child: element,
         onDragUpdate: (details) {
           widget.element.changePosition(
             /// 当前拖动的位置相对于屏幕的全局坐标 - 画布相对于全局坐标的位置 - 偏移 (保证更新的是当前拖动元素的左上角位置)
-            details.globalPosition - widget.dashboard.position - delta + screenOffset,
+            details.globalPosition -
+                widget.dashboard.position -
+                delta +
+                screenOffset,
             element: widget.element,
             dashboard: widget.dashboard,
             delta: details.delta,
           );
         },
         onDragEnd: (details) {
-          widget.element
-              .changePosition(details.offset - widget.dashboard.position + screenOffset);
+          widget.element.changePosition(
+              details.offset - widget.dashboard.position + screenOffset);
         },
       ),
     );

@@ -40,6 +40,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.5
+  flutter_code_editor: ^0.3.2
+  highlight: 0.7.0
+  flutter_highlight: ^0.7.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

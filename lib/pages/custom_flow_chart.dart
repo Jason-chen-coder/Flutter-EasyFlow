@@ -1,8 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_code_editor/flutter_code_editor.dart';
+import 'package:highlight/languages/json.dart';
 import 'package:star_menu/star_menu.dart';
+
+import '../flutter_flow_chart/dashboard.dart';
+import '../flutter_flow_chart/elements/flow_element.dart';
+import '../flutter_flow_chart/flow_chart.dart';
+import 'code_editor_theme.dart';
 
 class CustomFlowChart extends StatefulWidget {
   static String name = 'CustomFlowChart';
@@ -14,7 +20,6 @@ class CustomFlowChart extends StatefulWidget {
 }
 
 class _CustomFlowChartState extends State<CustomFlowChart> {
-  /// Notifier for the tension slider
   final segmentedTension = ValueNotifier<double>(1);
   late final Dashboard dashboard;
   late bool allElementsDraggable;
@@ -31,151 +36,229 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     Timer(Duration(seconds: 0), () {
       _initStartElements();
     });
+    dashboard.addListener(_onDashboardJsonChanged);
+  }
+
+  void _onDashboardJsonChanged() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    dashboard.removeListener(_onDashboardJsonChanged);
+    dashboard.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       constraints: const BoxConstraints.expand(),
-      child: Stack(
+      child: Row(
         children: [
           Container(
-            constraints: BoxConstraints.expand(),
-            child: FlowChart(
-                dashboard: dashboard,
-                onPlusNodePressed:
-                    (context, position, sourceElement, destElement) {
-                      _displayPlusElementMenu(context, position, sourceElement);
-                },
-                onGoupPlusPressed: (context, position, element) {
-                  _displayGroupPlusElementMenu(context, position, element);
-                },
-                onScaleUpdate: (newScale) {},
-                onDashboardLongTapped: (context, position) {
-                  final flowElement = FlowElement(
-                    size: Size(36, 36),
-                    elevation: 0,
-                    iconSize: 20,
-                    text: 'plus',
-                    position: Offset(0, 0),
-                    taskType: TaskType.plus,
-                    kind: ElementKind.plus,
-                    isDraggable: true,
-                    handlers: [
-                      Handler.bottomCenter,
-                      Handler.topCenter,
-                    ],
-                  );
-                  dashboard.addElement(flowElement);
-                },
-                // 单击元素时的回调
-                onElementPressed: (context, position, element) {
-                  dashboard.setSelectedElement(element.id);
-                }),
+            width: double.infinity,
+            height: double.infinity,
+            constraints: BoxConstraints(
+              minWidth: 450,
+              maxWidth: 480,
+            ),
+            decoration: BoxDecoration(
+              color: Color(0xffffffff),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return CodeTheme(
+                  data: CodeThemeData(styles: editorDefaultTheme),
+                  child: SingleChildScrollView(
+                      child: CodeField(
+                    enabled: false,
+                    wrap: true,
+                    controller: CodeController(
+                      text: dashboard.toPrettyJsonString,
+                      language: json,
+                    ),
+                    minLines: 1,
+                  )),
+                );
+              },
+            ),
           ),
-          Positioned(
-              left: 50,
-              bottom: 50,
-              child: Column(children: [
-                // 清空
+          Expanded(
+            child: Stack(
+              children: [
                 Container(
-                    width: 36,
-                    height: 36,
-                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Color(0xFFffffff),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                      ),
-                      onPressed: () {
-                        dashboard.removeAllElements();
-                        _initStartElements();
+                  constraints: BoxConstraints.expand(),
+                  child: FlowChart(
+                      dashboard: dashboard,
+                      onPlusNodePressed:
+                          (context, position, sourceElement, destElement) {
+                        _displayPlusElementMenu(
+                            context, position, sourceElement);
                       },
-                      child: Icon(
-                          Icons.cleaning_services_outlined,
-                          color: const Color(0xFF8D8C8D),
-                          size: 20),
-                    )),
-                // 放大
-                Container(
-                    width: 36,
-                    height: 36,
-                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Color(0xFFffffff),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                      ),
-                      onPressed: () {
-                        dashboard.setZoomFactor(1.5 * dashboard.zoomFactor);
+                      onGoupPlusPressed: (context, position, element) {
+                        _displayGroupPlusElementMenu(
+                            context, position, element);
                       },
-                      child: const Icon(Icons.add,
-                          color: Color(0xFF8D8C8D), size: 20),
-                    )),
-                // 缩小
-                Container(
-                    width: 36,
-                    height: 36,
-                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Color(0xFFffffff),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
-                      ),
-                      onPressed: () {
-                        dashboard.setZoomFactor(dashboard.zoomFactor / 1.5);
+                      onScaleUpdate: (newScale) {},
+                      onDashboardLongTapped: (context, position) {
+                        final flowElement = FlowElement(
+                          size: Size(36, 36),
+                          elevation: 0,
+                          iconSize: 20,
+                          text: 'plus',
+                          position: Offset(0, 0),
+                          taskType: TaskType.plus,
+                          kind: ElementKind.plus,
+                          isDraggable: true,
+                          handlers: [
+                            Handler.bottomCenter,
+                            Handler.topCenter,
+                          ],
+                        );
+                        dashboard.addElement(flowElement);
                       },
-                      child: const Icon(Icons.remove,
-                          color: Color(0xFF8D8C8D), size: 20),
-                    )),
-                // 定位至中心
-                Container(
-                    width: 36,
-                    height: 36,
-                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Color(0xFFffffff),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
+                      // 单击元素时的回调
+                      onElementPressed: (context, position, element) {
+                        dashboard.setSelectedElement(element.id);
+                      }),
+                ),
+                Positioned(
+                  left: 15,
+                  bottom: 15,
+                  child: Column(
+                    children: [
+                      // 清空
+                      Container(
+                        width: 36,
+                        height: 36,
+                        margin:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Color(0xFFffffff),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            dashboard.removeAllElements();
+                            _initStartElements();
+                          },
+                          child: Icon(
+                            Icons.cleaning_services_outlined,
+                            color: const Color(0xFF8D8C8D),
+                            size: 20,
+                          ),
+                        ),
                       ),
-                      onPressed: dashboard.setFullView,
-                      child: const Icon(Icons.fullscreen,
-                          color: Color(0xFF8D8C8D), size: 20),
-                    )),
-                // 锁定
-                Container(
-                    width: 36,
-                    height: 36,
-                    margin: EdgeInsets.symmetric(vertical: 2, horizontal: 1),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Color(0xFFffffff),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5)),
+                      // 放大
+                      Container(
+                        width: 36,
+                        height: 36,
+                        margin:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Color(0xFFffffff),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            dashboard.setZoomFactor(1.5 * dashboard.zoomFactor);
+                          },
+                          child: const Icon(
+                            Icons.add,
+                            color: Color(0xFF8D8C8D),
+                            size: 20,
+                          ),
+                        ),
                       ),
-                      onPressed: () {
-                        dashboard.triggerllElementDraggable();
-                        setState(() {
-                          allElementsDraggable = dashboard.allElementsDraggable;
-                        });
-                      },
-                      child: Icon(
-                          dashboard.allElementsDraggable
-                              ? Icons.lock
-                              : Icons.lock_open,
-                          color: const Color(0xFF8D8C8D),
-                          size: 20),
-                    ))
-              ])),
+                      // 缩小
+                      Container(
+                        width: 36,
+                        height: 36,
+                        margin:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Color(0xFFffffff),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            dashboard.setZoomFactor(dashboard.zoomFactor / 1.5);
+                          },
+                          child: const Icon(
+                            Icons.remove,
+                            color: Color(0xFF8D8C8D),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      // 定位至中心
+                      Container(
+                        width: 36,
+                        height: 36,
+                        margin:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Color(0xFFffffff),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: dashboard.setFullView,
+                          child: const Icon(
+                            Icons.fullscreen,
+                            color: Color(0xFF8D8C8D),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      // 锁定
+                      Container(
+                        width: 36,
+                        height: 36,
+                        margin:
+                            EdgeInsets.symmetric(vertical: 2, horizontal: 1),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: Color(0xFFffffff),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          onPressed: () {
+                            dashboard.triggerllElementDraggable();
+                            setState(() {
+                              allElementsDraggable =
+                                  dashboard.allElementsDraggable;
+                            });
+                          },
+                          child: Icon(
+                            dashboard.allElementsDraggable
+                                ? Icons.lock
+                                : Icons.lock_open,
+                            color: const Color(0xFF8D8C8D),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -206,7 +289,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
           ActionChip(
             label: const Text('Add Delay'),
             onPressed: () {
-
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
@@ -228,7 +310,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position:dashboard.getNextElementPosition(sourceElement),
+                    position: dashboard.getNextElementPosition(sourceElement),
                     text: 'Timer Out',
                     subTitleText: "just 2 minutes",
                     taskType: TaskType.timeout,
@@ -246,7 +328,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               dashboard.addElementByPlus(
                   sourceElement,
                   FlowElement(
-                    position:dashboard.getNextElementPosition(sourceElement),
+                    position: dashboard.getNextElementPosition(sourceElement),
                     text: 'Grab Samples',
                     subTitleText: "grab 2 PCR samples",
                     taskType: TaskType.grab,
@@ -376,7 +458,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
       startElement,
     );
     final groupElement = FlowElement(
-      position:dashboard.getNextElementPosition(startElement),
+      position: dashboard.getNextElementPosition(startElement),
       text: 'Group',
       size: Size(400, 80),
       iconSize: 36,
@@ -393,7 +475,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     dashboard.addElementConnection(startElement, groupElement);
 
     final endElement = FlowElement(
-      position:dashboard.getNextElementPosition(groupElement),
+      position: dashboard.getNextElementPosition(groupElement),
       text: 'End Process',
       subTitleText: "end of workflows",
       taskType: TaskType.end,

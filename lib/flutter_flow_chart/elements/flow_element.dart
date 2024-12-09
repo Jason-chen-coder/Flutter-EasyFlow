@@ -4,20 +4,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:flutter_svg/svg.dart';
-import './connection_params.dart';
 import 'package:uuid/uuid.dart';
 
-enum TaskType {
-  none,
-  trigger,
-  delay,
-  timeout,
-  grab,
-  end,
-  plus,
-  group
-}
+enum TaskType { none, trigger, delay, timeout, grab, end, plus, group }
 
 // 扩展枚举，添加字符串映射
 extension TaskTypeExtension on TaskType {
@@ -283,9 +272,9 @@ class FlowElement extends ChangeNotifier {
   double zoom;
 
   double newScaleFactor;
+
   /// Kind-specific data
   final dynamic data;
-
 
   /// Kind-specific data to load/save
   String? serializedData;
@@ -307,8 +296,7 @@ class FlowElement extends ChangeNotifier {
 
   /// Sets a new scale
   void setScale(double currentZoom, double factor) {
-
-    zoom = currentZoom == 1? factor :currentZoom; // 更新当前的缩放级别
+    zoom = currentZoom == 1 ? factor : currentZoom; // 更新当前的缩放级别
     newScaleFactor = factor / currentZoom; // 计算新的缩放因子
     size = size * newScaleFactor; // 调整尺寸
     handlerSize = handlerSize * newScaleFactor;
@@ -317,10 +305,10 @@ class FlowElement extends ChangeNotifier {
     iconSize = iconSize * newScaleFactor;
 
     // if(currentZoom != 1 && factor != 1) {
-      // 处理线和锚点
-      for (final element in next) {
-        element.arrowParams.setScale(newScaleFactor);
-      }
+    // 处理线和锚点
+    for (final element in next) {
+      element.arrowParams.setScale(newScaleFactor);
+    }
     // }
     notifyListeners();
   }
@@ -411,27 +399,31 @@ class FlowElement extends ChangeNotifier {
 
   /// 修改节点坐标
   void changePosition(Offset newPosition,
-      {FlowElement? element, Dashboard? dashboard,Offset? delta}) {
+      {FlowElement? element, Dashboard? dashboard, Offset? delta}) {
     position = newPosition;
-    if(element!=null && dashboard !=null && delta!=null){
-      if(element.taskType == TaskType.group){
-        moveGroupWidthSubElements(dashboard,element,delta);
+    if (element != null && dashboard != null && delta != null) {
+      if (element.taskType == TaskType.group) {
+        moveGroupWidthSubElements(dashboard, element, delta);
       }
     }
     notifyListeners();
   }
 
   /// 移动组节点时要带上子节点
-  void moveGroupWidthSubElements(Dashboard dashboard,FlowElement groupElement,Offset deltaPosition){
-    List<FlowElement> subElements = dashboard.elements.where((ele) => ele.parentId == groupElement.id).toList();
+  void moveGroupWidthSubElements(
+      Dashboard dashboard, FlowElement groupElement, Offset deltaPosition) {
+    List<FlowElement> subElements = dashboard.elements
+        .where((ele) => ele.parentId == groupElement.id)
+        .toList();
     for (var element in subElements) {
       element.changePosition(element.position + deltaPosition);
     }
   }
+
   /// Change element size
   void changeSize(Size newSize) {
-    double zoomWidthVal = newSize.width/ size.width;
-    double zoomHeightVal = newSize.height/ size.height;
+    double zoomWidthVal = newSize.width / size.width;
+    double zoomHeightVal = newSize.height / size.height;
     iconSize = iconSize * zoomWidthVal;
     textSize = textSize * zoomHeightVal;
     subTitleTextSize = subTitleTextSize * zoomHeightVal;
@@ -488,7 +480,7 @@ class FlowElement extends ChangeNotifier {
       'fontFamily': fontFamily,
       'textSize': textSize,
       'subTitleText': subTitleText,
-      'subTextColor': subTextColor,
+      'subTextColor': subTextColor.value,
       'subTitleTextSize': subTitleTextSize,
       'iconSize': iconSize,
       'parentId': parentId,
@@ -499,7 +491,7 @@ class FlowElement extends ChangeNotifier {
       'handlerSize': handlerSize,
       'backgroundColor': backgroundColor.value,
       'borderRadius': borderRadius,
-      'taskType': taskType,
+      'taskType': taskType.toStringValue,
       'borderColor': borderColor.value,
       'borderThickness': borderThickness,
       'elevation': elevation,
