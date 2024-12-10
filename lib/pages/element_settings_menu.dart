@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
+import 'package:flutter_easy_flow/flow_chart/flow_chart_library.dart';
 import 'package:star_menu/star_menu.dart';
 
 /// Popup menu for the 'element params" entry
@@ -57,27 +57,28 @@ class ElementSettingsMenu extends StatelessWidget {
 
       /// Thickness
       ValueListenableBuilder<double>(
-          valueListenable: sliderThickness,
-          builder: (_, value, __) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('thickness: '),
-                SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: Slider.adaptive(
-                    value: value,
-                    max: 25,
-                    onChanged: (v) {
-                      sliderThickness.value = v;
-                      element.setBorderThickness(value);
-                    },
-                  ),
+        valueListenable: sliderThickness,
+        builder: (_, value, __) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('thickness: '),
+              SizedBox(
+                width: 200,
+                height: 50,
+                child: Slider.adaptive(
+                  value: value,
+                  max: 25,
+                  onChanged: (v) {
+                    sliderThickness.value = v;
+                    element.setBorderThickness(value);
+                  },
                 ),
-              ],
-            );
-          },),
+              ),
+            ],
+          );
+        },
+      ),
       IconMenu(
         text: 'Border color',
         icon: CircleWidget(backgroundColor: element.borderColor),
@@ -103,29 +104,30 @@ class ElementSettingsMenu extends StatelessWidget {
 
       /// Elevation
       ValueListenableBuilder<double>(
-          valueListenable: sliderElevation,
-          builder: (_, value, __) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('elevation: '),
-                SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: Slider.adaptive(
-                    value: value,
-                    divisions: 16,
-                    min: -1,
-                    max: 15,
-                    onChanged: (v) {
-                      sliderElevation.value = v;
-                      element.setElevation(value);
-                    },
-                  ),
+        valueListenable: sliderElevation,
+        builder: (_, value, __) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('elevation: '),
+              SizedBox(
+                width: 200,
+                height: 50,
+                child: Slider.adaptive(
+                  value: value,
+                  divisions: 16,
+                  min: -1,
+                  max: 15,
+                  onChanged: (v) {
+                    sliderElevation.value = v;
+                    element.setElevation(value);
+                  },
                 ),
-              ],
-            );
-          },),
+              ),
+            ],
+          );
+        },
+      ),
     ];
   }
 }

@@ -8,10 +8,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/ui/draw_arrow.dart';
 import 'package:uuid/uuid.dart';
 
+import './flow_chart_library.dart';
+import './ui/draw_arrow.dart';
 import './ui/segment_handler.dart';
 
 final double groupElementSpacing = 20;

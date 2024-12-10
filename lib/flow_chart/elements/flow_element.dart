@@ -3,8 +3,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 import 'package:uuid/uuid.dart';
+
+import '../dashboard.dart';
+import 'connection_params.dart';
 
 enum TaskType { none, trigger, delay, timeout, grab, end, plus, group }
 

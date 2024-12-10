@@ -1,11 +1,11 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_easy_flow/flow_chart/flow_chart_library.dart';
+import 'package:star_menu/star_menu.dart';
+
 import './element_settings_menu.dart';
 import './platforms/hooks_mobile.dart'
-if (dart.library.js) './platforms/hooks_web.dart';
+    if (dart.library.js) './platforms/hooks_web.dart';
 import './text_menu.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:star_menu/star_menu.dart';
 
 class DefaultFlowChart extends StatefulWidget {
   static String name = 'DefaultFlowChart';
@@ -78,8 +78,7 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
               // 右键单击元素时的回调
               onElementSecondaryTapped: (context, position, element) {
                 debugPrint(
-                    'onElementSecondaryTapped with "${element
-                        .text}" text pressed');
+                    'onElementSecondaryTapped with "${element.text}" text pressed');
                 _displayElementMenu(context, position, element);
               },
               // 点击锚点的回调
@@ -102,29 +101,26 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
           Positioned(
               right: 50,
               bottom: 50,
-              child:Column(
-                children: [
-                  // 放大
-                  ElevatedButton(
-                    onPressed: () {
-                      dashboard.setZoomFactor(1.5 * dashboard.zoomFactor);
-                    },
-                    child: const Icon(Icons.zoom_in),
-                  ),
-                  // 缩小
-                  ElevatedButton(
-                    onPressed: () {
-                      dashboard.setZoomFactor(dashboard.zoomFactor / 1.5);
-                    },
-                    child: const Icon(Icons.zoom_out),
-                  ),
-                  ElevatedButton(
-                    onPressed: dashboard.recenter,
-                    child: const Icon(Icons.center_focus_strong),
-                  )
-                ]
-              )
-          )
+              child: Column(children: [
+                // 放大
+                ElevatedButton(
+                  onPressed: () {
+                    dashboard.setZoomFactor(1.5 * dashboard.zoomFactor);
+                  },
+                  child: const Icon(Icons.zoom_in),
+                ),
+                // 缩小
+                ElevatedButton(
+                  onPressed: () {
+                    dashboard.setZoomFactor(dashboard.zoomFactor / 1.5);
+                  },
+                  child: const Icon(Icons.zoom_out),
+                ),
+                ElevatedButton(
+                  onPressed: dashboard.recenter,
+                  child: const Icon(Icons.center_focus_strong),
+                )
+              ]))
           // 定位至画布中心
         ],
       ),
@@ -137,9 +133,11 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
 
   /// Display a drop down menu when tapping on a handler
   /// 点击锚点时显示下拉菜单
-  void _displayHandlerMenu(Offset position,
-      Handler handler,
-      FlowElement element,) {
+  void _displayHandlerMenu(
+    Offset position,
+    Handler handler,
+    FlowElement element,
+  ) {
     StarMenuOverlay.displayStarMenu(
       context,
       StarMenu(
@@ -240,9 +238,11 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
 
   /// Display a drop down menu when tapping on an element
   /// 点击元素时显示下拉菜单
-  void _displayElementMenu(BuildContext context,
-      Offset position,
-      FlowElement element,) {
+  void _displayElementMenu(
+    BuildContext context,
+    Offset position,
+    FlowElement element,
+  ) {
     StarMenuOverlay.displayStarMenu(
       context,
       StarMenu(
@@ -260,9 +260,7 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              color: Theme
-                  .of(context)
-                  .cardColor,
+              color: Theme.of(context).cardColor,
               boxShadow: kElevationToShadow[6],
             ),
           ),
@@ -308,7 +306,7 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
               dashboard.setElementResizable(element, !element.isResizable);
             },
             child:
-            Text('Toggle Resizable (${element.isResizable ? '✔' : '✘'})'),
+                Text('Toggle Resizable (${element.isResizable ? '✔' : '✘'})'),
           ),
           ElementSettingsMenu(
             element: element,
@@ -386,7 +384,7 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
           ),
           ActionChip(
             label:
-            const Text('Add rect (draggable, resizable, not connectable)'),
+                const Text('Add rect (draggable, resizable, not connectable)'),
             onPressed: () {
               dashboard.addElement(
                 FlowElement(
@@ -499,11 +497,8 @@ class _DefaultFlowChartState extends State<DefaultFlowChart> {
                     Handler.leftCenter,
                     Handler.rightCenter,
                   ],
-                  data: Image
-                      .memory(bytes)
-                      .image,
-                )
-                  ..isResizable = true,
+                  data: Image.memory(bytes).image,
+                )..isResizable = true,
               );
             },
           ),

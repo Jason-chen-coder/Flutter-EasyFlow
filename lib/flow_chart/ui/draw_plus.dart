@@ -1,12 +1,8 @@
-import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui';
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
+
+import '../elements/flow_element.dart';
 import './segment_handler.dart';
+import 'draw_arrow.dart';
 
 class DrawPlus extends StatefulWidget {
   ///
@@ -33,7 +29,6 @@ class DrawPlus extends StatefulWidget {
   final PivotsNotifier pivots;
 
   final void Function(BuildContext context, Offset position)? onPlusNodePressed;
-
 
   @override
   State<DrawPlus> createState() => _DrawArrowState();
@@ -86,39 +81,42 @@ class _DrawArrowState extends State<DrawPlus> {
               ((widget.arrowParams.endArrowPosition.y + 1) / 2)),
     );
     double plusNodeSize = widget.arrowParams.plusNodeSize;
-    var pivotPlus  = Offset(from.dx + ((to.dx - from.dx - plusNodeSize)/2),
-        from.dy+ ((to.dy - from.dy - plusNodeSize)/2));
-    double textSize = (0.56*plusNodeSize) ;
+    var pivotPlus = Offset(from.dx + ((to.dx - from.dx - plusNodeSize) / 2),
+        from.dy + ((to.dy - from.dy - plusNodeSize) / 2));
+    double textSize = (0.56 * plusNodeSize);
     var tapLocation = Offset.zero;
 
     return Transform.translate(
-        offset: pivotPlus,
-        child:  SizedBox(
-          width: plusNodeSize,
-          height: plusNodeSize,
-          child: GestureDetector(
-            onTapDown: (details) => tapLocation = details.globalPosition,
-            onTap: () {
-              widget.onPlusNodePressed?.call(context, Offset(pivotPlus.dx + plusNodeSize/2, pivotPlus.dy + plusNodeSize/2));
-            },
-            child: Container(
-              decoration:BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  Radius.circular(widget.destElement.borderRadius),
-                ),
+      offset: pivotPlus,
+      child: SizedBox(
+        width: plusNodeSize,
+        height: plusNodeSize,
+        child: GestureDetector(
+          onTapDown: (details) => tapLocation = details.globalPosition,
+          onTap: () {
+            widget.onPlusNodePressed?.call(
+                context,
+                Offset(pivotPlus.dx + plusNodeSize / 2,
+                    pivotPlus.dy + plusNodeSize / 2));
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.all(
+                Radius.circular(widget.destElement.borderRadius),
               ),
-              child:
-              // Text("${pivotPlus.dy}"),
-              Icon(
-                Icons.add,
-                color: const Color(0xFF31DA9F),
-                size:textSize,
-              ),
+            ),
+            child:
+                // Text("${pivotPlus.dy}"),
+                Icon(
+              Icons.add,
+              color: const Color(0xFF31DA9F),
+              size: textSize,
             ),
           ),
         ),
-      );
+      ),
+    );
   }
 }
 

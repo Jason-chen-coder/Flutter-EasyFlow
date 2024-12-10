@@ -1,11 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui';
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
+
+import '../elements/flow_element.dart';
 import './segment_handler.dart';
 
 /// Arrow style enumeration
@@ -68,6 +65,7 @@ class ArrowParams extends ChangeNotifier {
   double headRadius;
 
   double plusNodeSize;
+
   /// Arrow color.
   final Color color;
 
@@ -111,7 +109,7 @@ class ArrowParams extends ChangeNotifier {
     return <String, dynamic>{
       'thickness': thickness,
       'headRadius': headRadius,
-      'plusNodeSize':plusNodeSize,
+      'plusNodeSize': plusNodeSize,
       'tailLength': _tailLength,
       'color': color.value,
       'style': style?.index,
@@ -293,8 +291,8 @@ class ArrowPainter extends CustomPainter {
     List<Pivot>? pivots,
     FlowElement? srcElement,
     FlowElement? destElement,
-  }) :  pivots = pivots ?? [],
-        srcElement =srcElement ?? FlowElement(),
+  })  : pivots = pivots ?? [],
+        srcElement = srcElement ?? FlowElement(),
         destElement = destElement ?? FlowElement();
 
   ///
@@ -315,8 +313,8 @@ class ArrowPainter extends CustomPainter {
   ///
   final List<Pivot> pivots;
 
-  late FlowElement srcElement ;
-  late FlowElement destElement ;
+  late FlowElement srcElement;
+  late FlowElement destElement;
 
   @override
   bool? hitTest(Offset position) {
@@ -343,7 +341,7 @@ class ArrowPainter extends CustomPainter {
     if (srcElement.taskType != TaskType.plus) {
       canvas.drawCircle(from, params.headRadius, paint);
     }
-    if(destElement.taskType != TaskType.plus){
+    if (destElement.taskType != TaskType.plus) {
       canvas.drawCircle(to, params.headRadius, paint);
     }
 

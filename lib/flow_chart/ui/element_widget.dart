@@ -1,8 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_easy_flow/flutter_flow_chart/flutter_flow_chart.dart';
 
+import '../dashboard.dart';
+import '../elements/flow_element.dart';
 import '../objects/diamond_widget.dart';
 import '../objects/group_widget.dart';
 import '../objects/hexagon_widget.dart';
