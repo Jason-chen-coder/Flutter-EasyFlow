@@ -25,6 +25,7 @@ class ElementWidget extends StatefulWidget {
     required this.element,
     super.key,
     this.onElementPressed,
+    this.onElementOptionsPressed,
     this.onGoupPlusPressed,
     this.onElementSecondaryTapped,
     this.onElementLongPressed,
@@ -43,6 +44,9 @@ class ElementWidget extends StatefulWidget {
 
   ///
   final void Function(BuildContext context, Offset position)? onElementPressed;
+
+  final void Function(BuildContext context, FlowElement element)?
+      onElementOptionsPressed;
 
   final void Function(BuildContext context, Offset position)? onGoupPlusPressed;
 
@@ -134,8 +138,14 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = RectangleWidget(element: widget.element);
       //   任务节点
       case ElementKind.task:
-        element =
-            TaskWidget(dashboard: widget.dashboard, element: widget.element);
+        element = TaskWidget(
+            dashboard: widget.dashboard,
+            element: widget.element,
+            onElementOptionsPressed: (element) {
+              if (widget.onElementOptionsPressed != null) {
+                widget.onElementOptionsPressed!(context, element);
+              }
+            });
       //   plus节点
       case ElementKind.plus:
         element = PlusWidget(element: widget.element);
@@ -175,12 +185,12 @@ class _ElementWidgetState extends State<ElementWidget> {
       );
     }
 
-    if (widget.element.isDraggable) {
+    if (widget.element.isDraggable && widget.dashboard.allElementsDraggable) {
       element = _buildDraggableWidget(element);
-    } else {
-      // Since element is not draggable, move the grid when dragging on it
-      element = IgnorePointer(child: element);
     }
+    // else {
+    //   element = IgnorePointer(child: element);
+    // }
 
     var tapLocation = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
@@ -204,7 +214,7 @@ class _ElementWidgetState extends State<ElementWidget> {
     );
 
     return Transform.translate(
-      offset: widget.element.position,
+      offset: widget.element.position - widget.dashboard.position,
       child: SizedBox(
         width: widget.element.size.width + widget.element.handlerSize,
         height: widget.element.size.height + widget.element.handlerSize,
@@ -291,18 +301,14 @@ class _ElementWidgetState extends State<ElementWidget> {
         onDragUpdate: (details) {
           widget.element.changePosition(
             /// 当前拖动的位置相对于屏幕的全局坐标 - 画布相对于全局坐标的位置 - 偏移 (保证更新的是当前拖动元素的左上角位置)
-            details.globalPosition -
-                widget.dashboard.position -
-                delta +
-                screenOffset,
+            details.globalPosition - delta + screenOffset,
             element: widget.element,
             dashboard: widget.dashboard,
             delta: details.delta,
           );
         },
         onDragEnd: (details) {
-          widget.element.changePosition(
-              details.offset - widget.dashboard.position + screenOffset);
+          widget.element.changePosition(details.offset + screenOffset);
         },
       ),
     );

@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,7 +15,11 @@ import './flow_chart_library.dart';
 import './ui/draw_arrow.dart';
 import './ui/segment_handler.dart';
 
-final double groupElementSpacing = 20;
+/// 组节点内子节点的间距
+const double groupElementSpacing = 20;
+
+/// 节点间默认距离
+const int defaultNodeDistance = 40;
 
 class RectangleBounds {
   final double width;
@@ -125,9 +130,6 @@ class Dashboard extends ChangeNotifier {
 
   Offset _dashboardPosition;
 
-  // 节点间默认距离
-  int defaultNodeDistance = 80;
-
   /// Dashboard size
   Size dashboardSize;
 
@@ -152,7 +154,24 @@ class Dashboard extends ChangeNotifier {
   /// setting it to 0 will remove the limit
   double minimumZoomFactor;
   double maximumZoomFactor;
-  bool allElementsDraggable = true;
+  bool _allElementsDraggable = true;
+
+  get allElementsDraggable => _allElementsDraggable;
+
+  /// 画布是否正在放大缩小
+  bool _dashboardScaling = false;
+
+  get dashboardScaling => _dashboardScaling;
+  setDashboardScaling(bool value) {
+    _dashboardScaling = value;
+  }
+
+  double _oldScaleUpdateDelta = 0;
+  get oldScaleUpdateDelta => _oldScaleUpdateDelta;
+
+  setOldScaleUpdateDelta(double value) {
+    _oldScaleUpdateDelta = value;
+  }
 
   final List<ConnectionListener> _connectionListeners = [];
 
@@ -189,11 +208,19 @@ class Dashboard extends ChangeNotifier {
   }
 
   void triggerllElementDraggable() {
-    allElementsDraggable = !allElementsDraggable;
+    _allElementsDraggable = !_allElementsDraggable;
     for (var element in elements) {
-      element.isDraggable = allElementsDraggable;
+      element.isDraggable = _allElementsDraggable;
     }
-    if (allElementsDraggable) notifyListeners();
+    if (_allElementsDraggable) notifyListeners();
+  }
+
+  void setAllElementsDraggable(bool val) {
+    _allElementsDraggable = val;
+    for (var element in elements) {
+      element.isDraggable = val;
+    }
+    notifyListeners();
   }
 
   /// set [connectable] element property
@@ -249,13 +276,18 @@ class Dashboard extends ChangeNotifier {
     }
     // 计算所有元素的包围区域
     RectangleBounds boundingBoxSize = calculateBoundingBox(elements);
+    print("boundingBoxSize.size:${boundingBoxSize.size}");
     // 屏幕中心点
-    final center = Offset(dashboardSize.width / 2, dashboardSize.height / 2);
+    final center = Offset(dashboardSize.width / 2, dashboardSize.height / 2) +
+        _dashboardPosition;
     gridBackgroundParams.offset = center;
     // 区域偏移
     final currentDeviation = boundingBoxSize.center - center;
-    double newZoomFactor =
-        calculateScale(boundingBoxSize.size, dashboardSize) + zoomFactor - 1;
+    print(
+        "calculateScale(boundingBoxSize.size, dashboardSize)==>${calculateScale(boundingBoxSize.size, dashboardSize)}");
+    double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize) +
+        _oldScaleUpdateDelta;
+    print("=setFullView=======>newZoomFactor:${newZoomFactor}");
     for (final element in elements) {
       element.position -= currentDeviation;
       for (final next in element.next) {
@@ -266,6 +298,7 @@ class Dashboard extends ChangeNotifier {
     }
     // 开始放大/缩小
     setZoomFactor(newZoomFactor, focalPoint: center);
+    setOldScaleUpdateDelta(zoomFactor - 1);
     notifyListeners();
   }
 
@@ -294,6 +327,8 @@ class Dashboard extends ChangeNotifier {
     }
     double width = maxX - minX + (handleSize * 2);
     double height = maxY - minY + (handleSize * 2);
+    print("=calculateBoundingBox=======>width:${width}");
+    print("=calculateBoundingBox=======>height:${height}");
     return RectangleBounds(
       width: width,
       height: height,
@@ -336,6 +371,13 @@ class Dashboard extends ChangeNotifier {
         removedConnectDestElementIds.add(params.destElementId);
       }
       // 调整所有后续节点的垂直位置
+      final orderElementBottomHandlerPos =
+          orderElement.getHandlerPosition(Alignment.bottomCenter);
+      final sourceEleBottomHandlerPos =
+          sourceElement?.getHandlerPosition(Alignment.bottomCenter) ??
+              Offset.zero;
+      final elementsDistant =
+          orderElementBottomHandlerPos.dy - sourceEleBottomHandlerPos.dy;
       final orderElementIndex = elements.indexOf(orderElement);
       for (int i = 0; i < elements.length; i++) {
         final element = elements[i];
@@ -351,7 +393,7 @@ class Dashboard extends ChangeNotifier {
                 : elementGroupIndex > orderElementIndex)) {
           element.position = Offset(
             element.position.dx,
-            element.position.dy + newElementDistance,
+            element.position.dy + elementsDistant,
           );
         }
       }
@@ -416,21 +458,21 @@ class Dashboard extends ChangeNotifier {
     setSelectedElement(orderElement.id);
   }
 
-  Offset getNextElementPosition(FlowElement sourceElement) {
+  Offset getNextElementPosition(FlowElement sourceElement,
+      {Size targetElementSize = defaultElementSize}) {
     final newElementDx =
         sourceElement.getHandlerPosition(Alignment.bottomCenter).dx;
-    // 上下锚点距离 + 节点高度
-    // final newElementDistance = ((sourceElement.handlerSize) * 2 +
-    //         sourceElement.size.height +
-    //         sourceElement.handlerSize / 2) +
-    //     (defaultNodeDistance * 2);
-    print("=getNextElementPosition=======>zoomFactor:${zoomFactor}");
+    final diffDisatnce =
+        ((targetElementSize.height * zoomFactor) - sourceElement.size.height)
+                .abs() /
+            2;
     final handlerSizeScaled = sourceElement.handlerSize / zoomFactor;
     final totalHandlerHeight = handlerSizeScaled * 2;
     final adjustedNodeDistance = defaultNodeDistance * 2 * zoomFactor;
 
     final newElementDy = sourceElement.position.dy +
         totalHandlerHeight +
+        diffDisatnce +
         sourceElement.size.height +
         adjustedNodeDistance;
     return Offset(newElementDx, newElementDy);
@@ -587,6 +629,18 @@ class Dashboard extends ChangeNotifier {
     return null;
   }
 
+  void moveAllElements(Offset offset, {bool notify = true}) {
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].position += offset;
+      for (final conn in elements[i].next) {
+        for (final pivot in conn.pivots) {
+          pivot.pivot += offset;
+        }
+      }
+    }
+    if (notify) notifyListeners();
+  }
+
   /// 移除所有节点
   void removeAllElements({bool notify = true}) {
     elements.clear();
@@ -634,6 +688,17 @@ class Dashboard extends ChangeNotifier {
     }
 
     if (notify) notifyListeners();
+  }
+
+  /// 根据现有数据重新加载面板
+  void dashBoardReload() {
+    final mapData = toMap();
+    elements.clear();
+    // _dashboardPosition = Offset.zero;
+    // dashboardSize = Size.zero;
+    loadDashboardData(mapData);
+    // 通知监听器更新
+    // notifyListeners();
   }
 
   /// 解除一个元素连接
@@ -791,17 +856,21 @@ class Dashboard extends ChangeNotifier {
 
   updateLayOutAfterDelElement(
       FlowElement deletedElement, FlowElement? sourceElement) {
-    // 调整所有后续节点的垂直位置(将被删除的元素以下的所有元素向上移动)
+    final delEleBottomHandlerPos =
+        deletedElement.getHandlerPosition(Alignment.bottomCenter);
+    final sourceEleBottomHandlerPos =
+        sourceElement?.getHandlerPosition(Alignment.bottomCenter) ??
+            Offset.zero;
+    // 被删除元素和源元素之间的垂直距离
+    final elementsDistant =
+        delEleBottomHandlerPos.dy - sourceEleBottomHandlerPos.dy;
+    // 调整所有后续节点的垂直位置(将被删除的元素下方的所有元素向上移动)
     for (var element in elements) {
       if (element.position.dy >=
           deletedElement.position.dy - defaultNodeDistance * zoomFactor) {
         element.position = Offset(
           element.position.dx,
-          element.position.dy -
-              (deletedElement.size.height +
-                      deletedElement.handlerSize +
-                      defaultNodeDistance * 2) *
-                  zoomFactor,
+          element.position.dy - elementsDistant,
         );
       }
     }
@@ -866,10 +935,12 @@ class Dashboard extends ChangeNotifier {
     if (factor < minimumZoomFactor) {
       factor = minimumZoomFactor;
     }
+    print("=setZoomFactor=======>factor:${factor}");
     if (factor > maximumZoomFactor) {
       factor = maximumZoomFactor;
     }
-    focalPoint ??= Offset(dashboardSize.width / 2, dashboardSize.height / 2);
+    focalPoint ??= Offset(dashboardSize.width / 2, dashboardSize.height / 2) +
+        _dashboardPosition;
 
     for (final element in elements) {
       element
@@ -969,7 +1040,7 @@ class Dashboard extends ChangeNotifier {
 
   /// 获取格式化后的json数据
   get toPrettyJsonString =>
-      JsonEncoder.withIndent('  ').convert(json.decode(toJson()));
+      const JsonEncoder.withIndent('  ').convert(json.decode(toJson()));
 
   ///
   String prettyJson() {
@@ -1010,6 +1081,13 @@ class Dashboard extends ChangeNotifier {
     }
   }
 
+  void loadDashboardDataByLocal() async {
+    final String jsonString =
+        await rootBundle.loadString('assets/json/FlowChart.json');
+    final source = json.decode(jsonString) as Map<String, dynamic>;
+    loadDashboardData(source);
+  }
+
   /// clear the dashboard and load the new one from [source] json
   void loadDashboardData(Map<String, dynamic> source) {
     elements.clear();
@@ -1018,8 +1096,8 @@ class Dashboard extends ChangeNotifier {
       source['gridBackgroundParams'] as Map<String, dynamic>,
     );
     blockDefaultZoomGestures = source['blockDefaultZoomGestures'] as bool;
-    minimumZoomFactor = source['minimumZoomFactor'] as double;
-    maximumZoomFactor = source['maximumZoomFactor'] as double;
+    minimumZoomFactor = (source['minimumZoomFactor'] ?? 0.25) as double;
+    maximumZoomFactor = (source['maximumZoomFactor'] ?? 1.8) as double;
     dashboardSize = Size(
       source['dashboardSizeWidth'] as double,
       source['dashboardSizeHeight'] as double,
@@ -1034,6 +1112,6 @@ class Dashboard extends ChangeNotifier {
       ..clear()
       ..addAll(loadedElements);
 
-    recenter();
+    setFullView();
   }
 }

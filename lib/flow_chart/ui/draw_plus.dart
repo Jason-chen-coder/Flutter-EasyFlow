@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../dashboard.dart';
 import '../elements/flow_element.dart';
 import './segment_handler.dart';
 import 'draw_arrow.dart';
@@ -13,8 +14,12 @@ class DrawPlus extends StatefulWidget {
     this.onPlusNodePressed,
     super.key,
     ArrowParams? arrowParams,
+    required this.dashboard,
   })  : arrowParams = arrowParams ?? ArrowParams(),
         pivots = PivotsNotifier(pivots);
+
+  ///
+  final Dashboard dashboard;
 
   ///
   final ArrowParams arrowParams;
@@ -61,21 +66,25 @@ class _DrawArrowState extends State<DrawPlus> {
     var to = Offset.zero;
 
     from = Offset(
-      widget.srcElement.position.dx +
+      widget.srcElement.position.dx -
+          (widget.dashboard.position.dx) +
           widget.srcElement.handlerSize / 2.0 +
           (widget.srcElement.size.width *
               ((widget.arrowParams.startArrowPosition.x + 1) / 2)),
-      widget.srcElement.position.dy +
+      widget.srcElement.position.dy -
+          (widget.dashboard.position.dy) +
           widget.srcElement.handlerSize / 2.0 +
           (widget.srcElement.size.height *
               ((widget.arrowParams.startArrowPosition.y + 1) / 2)),
     );
     to = Offset(
-      widget.destElement.position.dx +
+      widget.destElement.position.dx -
+          (widget.dashboard.position.dx) +
           widget.destElement.handlerSize / 2.0 +
           (widget.destElement.size.width *
               ((widget.arrowParams.endArrowPosition.x + 1) / 2)),
-      widget.destElement.position.dy +
+      widget.destElement.position.dy -
+          (widget.dashboard.position.dy) +
           widget.destElement.handlerSize / 2.0 +
           (widget.destElement.size.height *
               ((widget.arrowParams.endArrowPosition.y + 1) / 2)),
@@ -84,7 +93,6 @@ class _DrawArrowState extends State<DrawPlus> {
     var pivotPlus = Offset(from.dx + ((to.dx - from.dx - plusNodeSize) / 2),
         from.dy + ((to.dy - from.dy - plusNodeSize) / 2));
     double textSize = (0.56 * plusNodeSize);
-    var tapLocation = Offset.zero;
 
     return Transform.translate(
       offset: pivotPlus,
@@ -92,7 +100,6 @@ class _DrawArrowState extends State<DrawPlus> {
         width: plusNodeSize,
         height: plusNodeSize,
         child: GestureDetector(
-          onTapDown: (details) => tapLocation = details.globalPosition,
           onTap: () {
             widget.onPlusNodePressed?.call(
                 context,

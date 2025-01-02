@@ -1,0 +1,104 @@
+{
+  "elements": [
+    {
+      "positionDx": 171.0,
+      "positionDy": 36.25,
+      "size.width": 310.0,
+      "size.height": 60.0,
+      "text": "Trigger",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 14.0,
+      "subTitleText": "实验人员手动触发",
+      "subTextColor": 4287466637,
+      "subTitleTextSize": 10.0,
+      "iconSize": 40.0,
+      "parentId": "",
+      "textIsBold": false,
+      "id": "43bcd2b1-2253-45ff-8ac4-6ff303101abc",
+      "kind": 0,
+      "handlers": [
+        1
+      ],
+      "handlerSize": 20.0,
+      "backgroundColor": 4294967295,
+      "borderRadius": 10.0,
+      "taskType": 1,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 2.0,
+      "data": null,
+      "next": [
+        {
+          "destElementId": "cfd6fefa-2245-4b8b-af02-409a5ff60ed4",
+          "arrowParams": {
+            "thickness": 2.0,
+            "headRadius": 3.0,
+            "plusNodeSize": 36.0,
+            "tailLength": 25.0,
+            "color": 4288256409,
+            "style": 2,
+            "tension": 1.0,
+            "startArrowPositionX": 0.0,
+            "startArrowPositionY": 1.0,
+            "endArrowPositionX": 0.0,
+            "endArrowPositionY": -1.0
+          },
+          "pivots": []
+        }
+      ],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    },
+    {
+      "positionDx": 171.0,
+      "positionDy": 176.25,
+      "size.width": 310.0,
+      "size.height": 60.0,
+      "text": "End Process",
+      "textColor": 4278190080,
+      "fontFamily": null,
+      "textSize": 14.0,
+      "subTitleText": "end of workflows",
+      "subTextColor": 4287466637,
+      "subTitleTextSize": 10.0,
+      "iconSize": 40.0,
+      "parentId": "",
+      "textIsBold": false,
+      "id": "cfd6fefa-2245-4b8b-af02-409a5ff60ed4",
+      "kind": 0,
+      "handlers": [
+        0
+      ],
+      "handlerSize": 20.0,
+      "backgroundColor": 4294967295,
+      "borderRadius": 10.0,
+      "taskType": 5,
+      "borderColor": 4280391411,
+      "borderThickness": 3.0,
+      "elevation": 2.0,
+      "data": null,
+      "next": [],
+      "isDraggable": true,
+      "isResizable": false,
+      "isConnectable": true,
+      "isDeletable": false
+    }
+  ],
+  "dashboardSizeWidth": 672.0,
+  "dashboardSizeHeight": 610.0,
+  "gridBackgroundParams": {
+    "offset.dx": 0.0,
+    "offset.dy": 0.0,
+    "scale": 1.0,
+    "gridSquare": 20.0,
+    "secondarySquareStep": 5,
+    "backgroundColor": 4294506744,
+    "gridColor": 4289440683
+  },
+  "blockDefaultZoomGestures": false,
+  "minimumZoomFactor": 0.25,
+  "arrowStyle": 2
+}

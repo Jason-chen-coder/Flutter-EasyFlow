@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../dashboard.dart';
 import '../elements/flow_element.dart';
 import './segment_handler.dart';
 
@@ -192,11 +193,15 @@ class DrawArrow extends StatefulWidget {
   DrawArrow({
     required this.srcElement,
     required this.destElement,
+    required this.dashboard,
     required List<Pivot> pivots,
     super.key,
     ArrowParams? arrowParams,
   })  : arrowParams = arrowParams ?? ArrowParams(),
         pivots = PivotsNotifier(pivots);
+
+  ///
+  final Dashboard dashboard;
 
   ///
   final ArrowParams arrowParams;
@@ -241,21 +246,25 @@ class _DrawArrowState extends State<DrawArrow> {
     var to = Offset.zero;
 
     from = Offset(
-      widget.srcElement.position.dx +
+      widget.srcElement.position.dx -
+          (widget.dashboard.position.dx) +
           widget.srcElement.handlerSize / 2.0 +
           (widget.srcElement.size.width *
               ((widget.arrowParams.startArrowPosition.x + 1) / 2)),
-      widget.srcElement.position.dy +
+      widget.srcElement.position.dy -
+          (widget.dashboard.position.dy) +
           widget.srcElement.handlerSize / 2.0 +
           (widget.srcElement.size.height *
               ((widget.arrowParams.startArrowPosition.y + 1) / 2)),
     );
     to = Offset(
-      widget.destElement.position.dx +
+      widget.destElement.position.dx -
+          (widget.dashboard.position.dx) +
           widget.destElement.handlerSize / 2.0 +
           (widget.destElement.size.width *
               ((widget.arrowParams.endArrowPosition.x + 1) / 2)),
-      widget.destElement.position.dy +
+      widget.destElement.position.dy -
+          (widget.dashboard.position.dy) +
           widget.destElement.handlerSize / 2.0 +
           (widget.destElement.size.height *
               ((widget.arrowParams.endArrowPosition.y + 1) / 2)),
@@ -324,38 +333,67 @@ class ArrowPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..strokeWidth = params.thickness // 设置画笔的宽度
+    // Define common paint styles
+    final commonPaint = Paint()
+      ..strokeWidth = params.thickness
       ..color = const Color(0xFF4f5158);
 
-    // 绘制连线
-    if (params.style == ArrowStyle.curve) {
-      drawCurve(canvas, paint);
-    } else if (params.style == ArrowStyle.segmented) {
-      drawLine();
-    } else if (params.style == ArrowStyle.rectangular) {
-      drawRectangularLine(canvas, paint);
+    // Draw connection line based on style
+    _drawConnectionLine(canvas, commonPaint);
+
+    // Draw anchor points if needed
+    _drawAnchorPoints(canvas, commonPaint);
+  }
+
+  void _drawConnectionLine(Canvas canvas, Paint paint) {
+    // Draw line based on style
+    switch (params.style) {
+      case ArrowStyle.curve:
+        drawCurve(canvas, paint);
+      case ArrowStyle.segmented:
+        drawLine();
+      case ArrowStyle.rectangular:
+        drawRectangularLine(canvas, paint);
+      case null:
+        // Handle null case if needed
+        break;
     }
 
-    // 绘制连线的锚点
-    if (srcElement.taskType != TaskType.plus) {
-      canvas.drawCircle(from, params.headRadius, paint);
-    }
-    if (destElement.taskType != TaskType.plus) {
-      canvas.drawCircle(to, params.headRadius, paint);
-    }
-
+    // Draw the path
     paint
       ..color = params.color
       ..style = PaintingStyle.stroke;
-
     canvas.drawPath(path, paint);
-
-    // 绘制连线之间的加号
-    // if (params.style != ArrowStyle.curve) {
-    //   drawPlusNode(canvas, paint);
-    // }
   }
+
+  void _drawAnchorPoints(Canvas canvas, Paint fillPaint) {
+    // Draw source anchor point
+    if (srcElement.taskType != TaskType.plus) {
+      _drawAnchorPoint(canvas, from);
+    }
+
+    // Draw destination anchor point
+    if (destElement.taskType != TaskType.plus) {
+      _drawAnchorPoint(canvas, to);
+    }
+  }
+
+  void _drawAnchorPoint(Canvas canvas, Offset position) {
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = params.headRadius * 4
+      ..style = PaintingStyle.stroke;
+    final fillPaint = Paint()
+      ..strokeWidth = params.thickness
+      ..color = const Color(0xFF4f5158);
+    canvas.drawCircle(position, params.headRadius, borderPaint);
+    canvas.drawCircle(position, params.headRadius, fillPaint);
+  }
+
+  // 绘制连线之间的加号
+  // if (params.style != ArrowStyle.curve) {
+  //   drawPlusNode(canvas, paint);
+  // }
   // void drawPlusNode(Canvas canvas, Paint paint) {
   //   final paint = Paint()
   //     ..strokeWidth = params.thickness // 设置画笔的宽度

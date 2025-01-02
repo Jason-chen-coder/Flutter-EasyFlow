@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easy_flow/flow_chart/ui/element_widget.dart';
 
 import './dashboard.dart';
 import './elements/flow_element.dart';
 import './ui/draw_arrow.dart';
 import './ui/draw_plus.dart';
-import './ui/element_widget.dart';
 import './ui/grid_background.dart';
 import './ui/segment_handler.dart';
 
@@ -35,6 +35,7 @@ class FlowChart extends StatefulWidget {
     this.onPivotSecondaryPressed,
     this.onScaleUpdate,
     this.onNewConnection,
+    this.onElementOptionsPressed,
   });
 
   /// callback for tap on dashboard
@@ -58,6 +59,12 @@ class FlowChart extends StatefulWidget {
     Offset position,
     FlowElement element,
   )? onElementPressed;
+
+  /// callback for element options pressed
+  final void Function(
+    BuildContext context,
+    FlowElement element,
+  )? onElementOptionsPressed;
 
   // 点击组节点的plus
   final void Function(
@@ -176,8 +183,6 @@ class _FlowChartState extends State<FlowChart> {
     if (mounted) setState(() {});
   }
 
-  double _oldScaleUpdateDelta = 0;
-
   @override
   Widget build(BuildContext context) {
     /// get dashboard position after first frame is drawn
@@ -189,8 +194,18 @@ class _FlowChartState extends State<FlowChart> {
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
           final position = Offset(translation.x, translation.y);
-          widget.dashboard.setDashboardSize(size);
-          widget.dashboard.setDashboardPosition(position);
+
+          if (widget.dashboard.position.dx != position.dx) {
+            // 当缩放过大时也会出发，暂时取消
+            // var offsetDx = position.dx - widget.dashboard.position.dx;
+            // if (offsetDx.abs() >= 0) {
+            //   var moveElementOffset = Offset(offsetDx / 2, 0);
+            //   widget.dashboard.moveAllElements(moveElementOffset);
+            // }
+            widget.dashboard.setDashboardSize(size);
+            widget.dashboard.setDashboardPosition(position);
+            setState(() {});
+          }
         }
       }
     });
@@ -201,7 +216,6 @@ class _FlowChartState extends State<FlowChart> {
     final gridKey = GlobalKey();
     var tapDownPos = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
-
     return ClipRect(
       child: OverflowBox(
         maxWidth: double.infinity,
@@ -245,10 +259,13 @@ class _FlowChartState extends State<FlowChart> {
                 onScaleUpdate: (details) {
                   // 缩放画布
                   if (details.scale != 1) {
+                    final factor =
+                        details.scale + widget.dashboard.oldScaleUpdateDelta;
                     widget.dashboard.setZoomFactor(
-                      details.scale + _oldScaleUpdateDelta,
+                      factor,
                       focalPoint: details.focalPoint,
                     );
+                    widget.dashboard.setDashboardScaling(true);
                   }
                   // 拖动画布
                   /// 设置网格相对位置
@@ -257,21 +274,16 @@ class _FlowChartState extends State<FlowChart> {
                   );
 
                   /// 设置节点的位置
-                  for (var i = 0; i < widget.dashboard.elements.length; i++) {
-                    widget.dashboard.elements[i].position +=
-                        details.focalPointDelta;
-                    for (final conn in widget.dashboard.elements[i].next) {
-                      for (final pivot in conn.pivots) {
-                        pivot.pivot += details.focalPointDelta;
-                      }
-                    }
-                  }
+                  widget.dashboard
+                      .moveAllElements(details.focalPointDelta, notify: false);
                   widget.dashboard.gridBackgroundParams.offset =
                       details.focalPointDelta;
                   setState(() {});
                 },
                 onScaleEnd: (details) {
-                  _oldScaleUpdateDelta = widget.dashboard.zoomFactor - 1;
+                  widget.dashboard
+                      .setOldScaleUpdateDelta(widget.dashboard.zoomFactor - 1);
+                  widget.dashboard.setDashboardScaling(false);
                 },
                 child: GridBackground(
                   key: gridKey,
@@ -292,6 +304,14 @@ class _FlowChartState extends State<FlowChart> {
                       context,
                       position,
                       widget.dashboard.elements.elementAt(i),
+                    );
+                  }
+                },
+                onElementOptionsPressed: (context, element) {
+                  if (widget.onElementOptionsPressed != null) {
+                    widget.onElementOptionsPressed!(
+                      context,
+                      element,
                     );
                   }
                 },
@@ -366,6 +386,7 @@ class _FlowChartState extends State<FlowChart> {
             for (int i = 0; i < widget.dashboard.elements.length; i++)
               for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
                 DrawArrow(
+                  dashboard: widget.dashboard,
                   arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
                   pivots: widget.dashboard.elements[i].next[n].pivots,
                   key: UniqueKey(),
@@ -379,6 +400,7 @@ class _FlowChartState extends State<FlowChart> {
             for (int i = 0; i < widget.dashboard.elements.length; i++)
               for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)
                 DrawPlus(
+                    dashboard: widget.dashboard,
                     arrowParams:
                         widget.dashboard.elements[i].next[n].arrowParams,
                     pivots: widget.dashboard.elements[i].next[n].pivots,

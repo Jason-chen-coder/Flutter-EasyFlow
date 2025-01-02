@@ -8,6 +8,8 @@ import 'package:uuid/uuid.dart';
 import '../dashboard.dart';
 import 'connection_params.dart';
 
+const Size defaultElementSize = Size(310, 60);
+
 enum TaskType { none, trigger, delay, timeout, grab, end, plus, group }
 
 // 扩展枚举，添加字符串映射

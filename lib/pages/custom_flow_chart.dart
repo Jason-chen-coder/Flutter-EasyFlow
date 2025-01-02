@@ -71,7 +71,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
               children: [
                 IconButton(
                   icon: SvgPicture.asset(
-                    'svg/ic_return.svg',
+                    'assets/svg/ic_return.svg',
                     matchTextDirection: true,
                   ),
                   onPressed: () {},
@@ -81,7 +81,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                     transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
                     alignment: Alignment.center,
                     child: SvgPicture.asset(
-                      'svg/ic_return.svg',
+                      'assets/svg/ic_return.svg',
                       matchTextDirection: true,
                     ),
                   ),
@@ -103,7 +103,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                     ),
                   ),
                   icon: SvgPicture.asset(
-                    'svg/ic_md_save.svg',
+                    'assets/svg/ic_md_save.svg',
                     matchTextDirection: true,
                     width: 20,
                     height: 20,
@@ -506,8 +506,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   }
 
   void _initStartElements() {
-    final startDx = dashboard.dashboardSize.width / 2;
-    final startDy = dashboard.dashboardSize.height / 8;
+    final startDx = (dashboard.dashboardSize.width / 2) + dashboard.position.dx;
+    final startDy =
+        (dashboard.dashboardSize.height / 8) + dashboard.position.dy;
     final startElement = FlowElement(
       position: Offset(startDx, startDy),
       text: 'Trigger',
@@ -522,25 +523,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     dashboard.addElement(
       startElement,
     );
-    final groupElement = FlowElement(
-      position: dashboard.getNextElementPosition(startElement),
-      text: 'Group',
-      size: Size(400, 80),
-      iconSize: 36,
-      taskType: TaskType.group,
-      kind: ElementKind.group,
-      handlers: [
-        Handler.topCenter,
-        Handler.bottomCenter,
-      ],
-    );
-    dashboard.addElement(
-      groupElement,
-    );
-    dashboard.addElementConnection(startElement, groupElement);
 
     final endElement = FlowElement(
-      position: dashboard.getNextElementPosition(groupElement),
+      position: dashboard.getNextElementPosition(startElement),
       text: 'End Process',
       subTitleText: "end of workflows",
       taskType: TaskType.end,
@@ -552,6 +537,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     dashboard.addElement(
       endElement,
     );
-    dashboard.addElementConnection(groupElement, endElement);
+    dashboard.addElementConnection(startElement, endElement);
   }
 }
