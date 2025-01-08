@@ -14,10 +14,13 @@ jobs:
       # 检出代码
       - uses: actions/checkout@v4
 
-      # 设置 Flutter 环境
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "stable"
+      # 安装 Flutter SDK
+      - name: Install Flutter SDK
+        run: |
+          curl -O https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.13.0-stable.tar.xz
+          tar xf flutter_linux_3.13.0-stable.tar.xz
+          export PATH="$PATH:$PWD/flutter/bin"
+          flutter doctor
 
       # 安装依赖项
       - name: Install dependencies
