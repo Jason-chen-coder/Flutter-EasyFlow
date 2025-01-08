@@ -19,7 +19,7 @@ import './ui/segment_handler.dart';
 const double groupElementSpacing = 20;
 
 /// 节点间默认距离
-const int defaultNodeDistance = 40;
+const int defaultNodeDistance = 50;
 
 class RectangleBounds {
   final double width;
@@ -327,8 +327,6 @@ class Dashboard extends ChangeNotifier {
     }
     double width = maxX - minX + (handleSize * 2);
     double height = maxY - minY + (handleSize * 2);
-    print("=calculateBoundingBox=======>width:${width}");
-    print("=calculateBoundingBox=======>height:${height}");
     return RectangleBounds(
       width: width,
       height: height,
@@ -354,8 +352,6 @@ class Dashboard extends ChangeNotifier {
 
   void addElementByPlus(FlowElement sourceElement, FlowElement orderElement) {
     final sourceElementIndex = elements.indexOf(sourceElement);
-    final newElementDistance =
-        orderElement.position.dy - sourceElement.position.dy;
     // 新增节点
     addElement(orderElement, position: sourceElementIndex + 1);
     List<ConnectionParams> nextElementsConnectionParams = sourceElement.next;
@@ -422,25 +418,239 @@ class Dashboard extends ChangeNotifier {
       // 选中当前节点
       setSelectedElement(orderElement.id);
     }
-    // setFullView();
   }
 
-  /// 从组节点添加新节点
-  void addElementByGroupPlus(
+  // 通过组内 节点之间的 + 号新增
+  void addElementByGroupColumnPlus(
+      FlowElement sourceElement, FlowElement orderElement) {
+    final groupElement = elements.firstWhere(
+      (element) => element.id == sourceElement.parentId,
+    );
+    final lastChildElements =
+        elements.where((el) => el.parentId == groupElement.id);
+    final lastGroupRowLayoutData =
+        getGroupRowLayoutData(lastChildElements.toList());
+    // 新增节点
+    addElement(orderElement);
+
+    // 选中当前节点
+    setSelectedElement(orderElement.id);
+
+    List<ConnectionParams> nextElementsConnectionParams = sourceElement.next;
+    // orderElement.changePosition(Offset(sourceElement.position.dx, sourceElement.position.dy+));
+
+    List<String> removedConnectDestElementIds = [];
+    if (nextElementsConnectionParams.isNotEmpty) {
+      // // 移除当前节点下现有的所有连接并记录其目标节点id
+      for (var params in nextElementsConnectionParams.toList()) {
+        removeConnectionByElements(
+          sourceElement,
+          findElementById(params.destElementId) as FlowElement,
+          notify: false,
+        );
+        removedConnectDestElementIds.add(params.destElementId);
+      }
+      final orderElementBottomHandlerPos =
+          orderElement.getHandlerPosition(Alignment.bottomCenter);
+      final sourceEleBottomHandlerPos =
+          sourceElement.getHandlerPosition(Alignment.bottomCenter);
+      final addHeight =
+          orderElementBottomHandlerPos.dy - sourceEleBottomHandlerPos.dy;
+
+      ///  调整当前组当前节点所在的列后续节点的垂直位置
+      ///addHeight和elementsDistant效果一样
+      final sourceDy = sourceElement.position.dy;
+      final childElements =
+          elements.where((el) => el.parentId == groupElement.id);
+      final groupColumnLayoutData =
+          getGroupColumnLayoutData(childElements.toList());
+      for (int i = 0; i < elements.length; i++) {
+        final isSameColumn = checkElementIsInColumn(elements[i].position.dx,
+            orderElement.position.dx, groupColumnLayoutData);
+        if (elements[i].position.dy > sourceDy.toDouble() &&
+            sourceElement.parentId == elements[i].parentId &&
+            elements[i].id != orderElement.id &&
+            isSameColumn) {
+          elements[i].changePosition(Offset(
+              elements[i].position.dx, elements[i].position.dy + addHeight));
+        }
+      }
+
+      ///  更新组节点大小
+      final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
+      final diffElementRows =
+          groupRowLayoutData.length - lastGroupRowLayoutData.length;
+      final newGroupElementSize = Size(groupElement.size.width,
+          groupElement.size.height + addHeight * diffElementRows);
+      final diffHeight = newGroupElementSize.height - groupElement.size.height;
+
+      /// 预留判断：
+      ///  判断source的所在的列最后一个元素是否是整个组内的最后一行，最后一行才需要更新组节点大小
+      ///  找到source所在列的最后一个元素
+      // FlowElement? sourceColumnLastElement;
+      // for (List<FlowElement> columnElements in groupColumnLayoutData) {
+      //   if (columnElements.first.position.dx == sourceElement.position.dx) {
+      //     sourceColumnLastElement = columnElements.last;
+      //     break;
+      //   }
+      // }
+      // bool isAddFromLastRow = sourceColumnLastElement == null
+      //     ? false
+      //     : checkElementIsLastRow(sourceColumnLastElement, groupRowLayoutData);
+      // if (isAddFromLastRow) {
+      groupElement.size = newGroupElementSize;
+      // }
+
+      for (int i = 0; i < elements.length; i++) {
+        if (elements[i].position.dy >= orderElement.position.dy &&
+            elements[i].parentId != groupElement.id) {
+          elements[i].position = Offset(
+            elements[i].position.dx,
+            elements[i].position.dy + diffHeight,
+          );
+        }
+      }
+
+      ///连接新节点
+      addNextById(
+        sourceElement,
+        orderElement.id,
+        DrawingArrow.instance.params.copyWith(
+          style: ArrowStyle.rectangular,
+          startArrowPosition: Alignment.bottomCenter,
+          endArrowPosition: Alignment.topCenter,
+        ),
+      );
+      // // 恢复之前移除的连接，将orderElement连接到destElementId节点
+      for (final destElementId in removedConnectDestElementIds) {
+        addNextById(
+          orderElement,
+          destElementId,
+          DrawingArrow.instance.params.copyWith(
+            style: ArrowStyle.rectangular,
+            startArrowPosition: Alignment.bottomCenter,
+            endArrowPosition: Alignment.topCenter,
+          ),
+        );
+      }
+      notifyListeners();
+    }
+  }
+
+//  判断element是否是组内的最后一行
+  bool checkElementIsLastRow(
+      FlowElement element, List<List<FlowElement>> groupRowLayoutData) {
+    final lastRow = groupRowLayoutData.last;
+    // 最后一行中y坐标最大的元素
+    FlowElement maxDyElement = groupRowLayoutData.last.reduce((current, next) =>
+        current.position.dy > next.position.dy ? current : next);
+
+    // 是否是lastRow最后一个元素
+    return maxDyElement.position.dy == element.position.dy;
+  }
+
+//  判断element是否是组内的最后一列
+  bool checkElementIsLastColumn(FlowElement element) {
+    return false;
+  }
+
+// 判断element是否在组内的某一列
+  bool checkElementIsInColumn(double elementDx, double targetDx,
+      List<List<FlowElement>> groupColumnLayoutData) {
+    for (int i = 0; i < groupColumnLayoutData.length; i++) {
+      final columnDx = groupColumnLayoutData[i].first.position.dx;
+      if (targetDx == columnDx && elementDx == targetDx) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+// 判断element是否在组内的某一行
+  bool checkElementIsInRow() {
+    return false;
+  }
+
+  // 通过组内每一列底部节点下的+号新增
+  void addElementByGroupColumnBottomPlus(
+      FlowElement sourceElement, FlowElement orderElement) {
+    final groupElement = elements.firstWhere(
+      (element) => element.id == sourceElement.parentId,
+    );
+
+    final lastChildElements =
+        elements.where((el) => el.parentId == groupElement.id);
+    final lastGroupRowLayoutData =
+        getGroupRowLayoutData(lastChildElements.toList());
+
+    /// 新增节点(节点先进画布，获取真实宽高)
+    addElement(orderElement);
+
+    ///连接新节点
+    addNextById(
+      sourceElement,
+      orderElement.id,
+      DrawingArrow.instance.params.copyWith(
+        style: ArrowStyle.rectangular,
+        startArrowPosition: Alignment.bottomCenter,
+        endArrowPosition: Alignment.topCenter,
+      ),
+    );
+    setSelectedElement(orderElement.id);
+    final childElements =
+        elements.where((el) => el.parentId == groupElement.id);
+
+    final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
+
+    final diffElementRows =
+        groupRowLayoutData.length - lastGroupRowLayoutData.length;
+
+    ///  更新组节点大小
+    final orderElementBottomHandlerPos =
+        orderElement.getHandlerPosition(Alignment.bottomCenter);
+    final sourceEleBottomHandlerPos =
+        sourceElement.getHandlerPosition(Alignment.bottomCenter);
+    final addHeight =
+        orderElementBottomHandlerPos.dy - sourceEleBottomHandlerPos.dy;
+
+    final newGroupElementSize = Size(groupElement.size.width,
+        groupElement.size.height + addHeight * diffElementRows);
+    final diffHeight = newGroupElementSize.height - groupElement.size.height;
+    groupElement.size = newGroupElementSize;
+
+    ///  组外的节点向下移动
+    for (int i = 0; i < elements.length; i++) {
+      if (elements[i].position.dy >= orderElement.position.dy &&
+          elements[i].parentId != groupElement.id) {
+        elements[i].position = Offset(
+          elements[i].position.dx,
+          elements[i].position.dy + diffHeight,
+        );
+      }
+    }
+    notifyListeners();
+  }
+
+  /// 从组节点右侧添加新节点
+  void addElementByGroupRightPlus(
       FlowElement groupElement, FlowElement orderElement) {
     /// 计算group的padding
     final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
 
     /// 找到属于groupElement的所有子Element
-    List<FlowElement> subElements =
+    List<FlowElement> lastChildElements =
         elements.where((ele) => ele.parentId == groupElement.id).toList();
 
     /// 新增节点(节点先进画布，获取真实宽高)
     addElement(orderElement);
+    setSelectedElement(orderElement.id);
     final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
 
-    ///  更新组节点大小
-    if (subElements.isNotEmpty) {
+    final groupStartPosition = Offset(
+        groupElement.position.dx + currentGroupElementSpacing,
+        groupElement.position.dy + currentGroupElementSpacing);
+    if (lastChildElements.isNotEmpty) {
+      ///  更新组节点大宽度
       final groupElementSize = Size(
           groupElement.size.width +
               orderElement.size.width +
@@ -451,11 +661,89 @@ class Dashboard extends ChangeNotifier {
       ///   更新组节点位置
       groupElement.position = Offset(
           groupElement.position.dx - offsetWidth / 2, groupElement.position.dy);
-    }
 
-    ///  组内的子节点重新排列
-    updateGroupSubElementLayout(groupElement);
-    setSelectedElement(orderElement.id);
+      ///   获取最右一列的坐标，并更新节点坐标
+      List<FlowElement> lastRowsDx =
+          getGroupColumnLayoutData(lastChildElements).last;
+      final elementDx = lastRowsDx.first.position.dx +
+          (orderElement.size.width + currentGroupElementSpacing);
+      orderElement.changePosition(Offset(elementDx, groupStartPosition.dy));
+      List<FlowElement> childElements =
+          elements.where((el) => el.parentId == groupElement.id).toList();
+      for (FlowElement element in childElements) {
+        element.changePosition(
+            Offset(element.position.dx - offsetWidth / 2, element.position.dy));
+      }
+    } else {
+      //更新组节点高度
+      final addHeight = (defaultNodeDistance + defaultHandlerSize) * zoomFactor;
+      final newGroupElementSize = Size(groupElement.size.width,
+          addHeight + defaultElementSize.height + elementPadding * 2);
+      final diffHeight = newGroupElementSize.height - groupElement.size.height;
+      groupElement.size = newGroupElementSize;
+      // 更新节点坐标
+      orderElement.changePosition(groupStartPosition);
+
+      ///  组外下面的节点重新排列
+      for (int i = 0; i < elements.length; i++) {
+        if (elements[i].position.dy >= orderElement.position.dy &&
+            elements[i].parentId != groupElement.id) {
+          elements[i].position = Offset(
+            elements[i].position.dx,
+            elements[i].position.dy + diffHeight,
+          );
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  // 获取行布局数据
+  List<List<FlowElement>> getGroupRowLayoutData(
+      List<FlowElement> childElements) {
+    List<List<FlowElement>> groupRowLayoutData = [];
+
+    /// 获取所有行数的Dy
+    final subElementsOrderDy =
+        childElements.map((childEle) => childEle.position.dy).toSet().toList();
+    subElementsOrderDy.sort();
+    for (int i = 0; i < subElementsOrderDy.length; i++) {
+      List<FlowElement> rows = [];
+      for (int j = 0; j < childElements.length; j++) {
+        if (childElements[j].position.dy.toStringAsFixed(4) ==
+            subElementsOrderDy[i].toDouble().toStringAsFixed(4)) {
+          rows.add(childElements[j]);
+        }
+      }
+      // 根据dx的值从小到大排序
+      rows.sort((a, b) => a.position.dx.compareTo(b.position.dx));
+      groupRowLayoutData.add(rows);
+    }
+    return groupRowLayoutData;
+  }
+
+  // 获取列布局数据
+  List<List<FlowElement>> getGroupColumnLayoutData(
+      List<FlowElement> childElements) {
+    List<List<FlowElement>> groupColumnLayoutData = [];
+
+    /// 获取所有列数的Dx
+    final subElementsOrderDx =
+        childElements.map((childEle) => childEle.position.dx).toSet().toList();
+    subElementsOrderDx.sort();
+    for (int i = 0; i < subElementsOrderDx.length; i++) {
+      List<FlowElement> columns = [];
+      for (int j = 0; j < childElements.length; j++) {
+        if (childElements[j].position.dx.toStringAsFixed(4) ==
+            subElementsOrderDx[i].toDouble().toStringAsFixed(4)) {
+          columns.add(childElements[j]);
+        }
+      }
+      // 根据dx的值从小到大排序
+      columns.sort((a, b) => a.position.dy.compareTo(b.position.dy));
+      groupColumnLayoutData.add(columns);
+    }
+    return groupColumnLayoutData;
   }
 
   Offset getNextElementPosition(FlowElement sourceElement,
@@ -463,22 +751,26 @@ class Dashboard extends ChangeNotifier {
     final newElementDx =
         sourceElement.getHandlerPosition(Alignment.bottomCenter).dx;
     final diffDisatnce =
-        ((targetElementSize.height * zoomFactor) - sourceElement.size.height)
-                .abs() /
+        ((targetElementSize.height * zoomFactor) - sourceElement.size.height) /
             2;
     final handlerSizeScaled = sourceElement.handlerSize / zoomFactor;
-    final totalHandlerHeight = handlerSizeScaled * 2;
     final adjustedNodeDistance = defaultNodeDistance * 2 * zoomFactor;
-
-    final newElementDy = sourceElement.position.dy +
-        totalHandlerHeight +
-        diffDisatnce +
-        sourceElement.size.height +
-        adjustedNodeDistance;
+    // final totalHandlerHeight = handlerSizeScaled * 2;
+    // final newElementDy = sourceElement.position.dy +
+    //     totalHandlerHeight +
+    //     diffDisatnce +
+    //     sourceElement.size.height +
+    //     adjustedNodeDistance;
+    final newElementDy =
+        sourceElement.getHandlerPosition(Alignment.bottomCenter).dy +
+            handlerSizeScaled * 1.5 +
+            (diffDisatnce > 0 ? diffDisatnce.abs() : 0) +
+            adjustedNodeDistance;
     return Offset(newElementDx, newElementDy);
   }
 
   void updateGroupSubElementLayout(FlowElement groupElement) {
+    print("updateGroupSubElementLayout====>");
     final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
     List<FlowElement> subElements =
         elements.where((ele) => ele.parentId == groupElement.id).toList();
@@ -487,10 +779,55 @@ class Dashboard extends ChangeNotifier {
       final elementDx = groupElement.position.dx +
           currentGroupElementSpacing +
           i * (element.size.width + currentGroupElementSpacing);
+      final elementDy = groupElement.position.dy + elementPadding * zoomFactor;
+      element.changePosition(Offset(elementDx, elementDy));
+    }
+  }
+
+  void updateLayOutAfterDelElementInGroup(
+      FlowElement deletedElement,
+      FlowElement? sourceElement,
+      List<FlowElement> bottomOfRemovedElements,
+      double decreaseHeight) {
+    final delEleBottomHandlerPos =
+        deletedElement.getHandlerPosition(Alignment.bottomCenter);
+    final sourceEleBottomHandlerPos =
+        sourceElement?.getHandlerPosition(Alignment.bottomCenter) ??
+            Offset.zero;
+    // 被删除元素和源元素之间的垂直距离
+    final elementsDistant =
+        delEleBottomHandlerPos.dy - sourceEleBottomHandlerPos.dy;
+    // 调整被删除节点所在列后面的所有节点垂直位置
+    for (FlowElement element in bottomOfRemovedElements) {
       element.changePosition(Offset(
-          elementDx,
-          groupElement.position.dy +
-              (groupElement.size.height - subElements.first.size.height) / 2));
+          element.position.dx,
+          element.position.dy -
+              (sourceElement == null ? decreaseHeight : elementsDistant)));
+    }
+
+    //  被删除节点的连接点
+    // 抓到被删除节点的下一个节点
+    List<ConnectionParams> deletedElementConnectionParams = deletedElement.next;
+    List<String> removedConnectDestElementIds = [];
+    if (deletedElementConnectionParams.isNotEmpty) {
+      // 被移除节点下所有连接的目标节点id
+      for (var params in deletedElementConnectionParams.toList()) {
+        removedConnectDestElementIds.add(params.destElementId);
+      }
+    }
+    // 恢复之前移除的连接，将orderElement连接到destElementId节点
+    for (final destElementId in removedConnectDestElementIds) {
+      if (sourceElement != null) {
+        addNextById(
+          sourceElement,
+          destElementId,
+          DrawingArrow.instance.params.copyWith(
+            style: ArrowStyle.rectangular,
+            startArrowPosition: Alignment.bottomCenter,
+            endArrowPosition: Alignment.topCenter,
+          ),
+        );
+      }
     }
   }
 
@@ -818,39 +1155,138 @@ class Dashboard extends ChangeNotifier {
         return id.contains(handlerParams.destElementId);
       });
     }
-    // 从组节点中移除,需要更新组节点的大小
-    if (removedElement.parentId != "") {
-      List<FlowElement> subElements = elements
-          .where((ele) => ele.parentId == removedElement.parentId)
-          .toList();
-      final groupElement = findElementById(removedElement.parentId);
-      final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
-
-      if (subElements.isNotEmpty && groupElement != null) {
-        final offsetWidth =
-            (removedElement.size.width + currentGroupElementSpacing);
-
-        final groupElementSize = Size(
-            groupElement.size.width -
-                removedElement.size.width -
-                currentGroupElementSpacing,
-            groupElement.size.height);
-        //  更新组节点大小
-        groupElement.size = groupElementSize;
-        //  更新组节点位置
-        groupElement.position = Offset(
-            groupElement.position.dx + offsetWidth / 2,
-            groupElement.position.dy);
-        //  子节点重新排列
-        updateGroupSubElementLayout(groupElement);
-      }
-    }
     // 如果有后续节点的布局需要更新
     if (removedElement.next.isNotEmpty) {
       // 更新布局
       updateLayOutAfterDelElement(removedElement, sourceElement);
     }
 
+    if (notify) notifyListeners();
+  }
+
+  /// 在组内通过 节点[id] 移除节点
+  void removeElementInGroupByElementId(String removedElementId,
+      {bool notify = true}) {
+    FlowElement removedElement = findElementById(removedElementId)!;
+    FlowElement? sourceElement = findSrcElementByDestElement(removedElement);
+    double decreaseHeight = 0;
+    double decreaseWidth = 0;
+    FlowElement? removedEleNextEle = removedElement.next.isNotEmpty
+        ? findElementById(removedElement.next.first.destElementId)
+        : null;
+    List<FlowElement> lastChildElements = elements
+        .where((ele) => ele.parentId == removedElement.parentId)
+        .toList();
+    final groupElement = findElementById(removedElement.parentId)!;
+    if (sourceElement == null) {
+      //删除的是组内的第一行的节点
+      if (removedEleNextEle != null) {
+        //删除的节点下面有其他节点
+        final removedEleBottomHandlerPos =
+            removedElement.getHandlerPosition(Alignment.bottomCenter);
+        final removedNextEleBottomHandlerPos =
+            removedEleNextEle.getHandlerPosition(Alignment.bottomCenter);
+        decreaseHeight =
+            removedNextEleBottomHandlerPos.dy - removedEleBottomHandlerPos.dy;
+      } else {
+        //删除的节点下面没有其他节点，删除后组直接少一列
+        print("lastChildElements.length===>${lastChildElements.length}");
+        if (lastChildElements.length > 1) {
+          final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
+          decreaseWidth =
+              removedElement.size.width + currentGroupElementSpacing;
+        }
+      }
+    }
+    final lastGroupRowLayoutData =
+        getGroupRowLayoutData(lastChildElements.toList());
+    final lastGroupColumnLayoutData =
+        getGroupColumnLayoutData(lastChildElements.toList());
+    // 移除当前节点
+    elements.removeWhere((element) {
+      if (element.id == removedElementId) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+    // 移除当前节点所有的连接
+    for (final e in elements) {
+      e.next.removeWhere((handlerParams) {
+        return removedElementId.contains(handlerParams.destElementId);
+      });
+    }
+    List<FlowElement> bottomOfRemovedElements = [];
+    for (List<FlowElement> columnElements in lastGroupColumnLayoutData) {
+      if (columnElements.first.position.dx == removedElement.position.dx) {
+        bottomOfRemovedElements = columnElements.where((ele) {
+          return double.parse(ele.position.dy.toStringAsFixed(4)) >
+              double.parse(removedElement.position.dy.toStringAsFixed(4));
+        }).toList();
+        break;
+      }
+    }
+    print("bottomOfRemovedElements===>${bottomOfRemovedElements}");
+
+    updateLayOutAfterDelElementInGroup(
+        removedElement, sourceElement, bottomOfRemovedElements, decreaseHeight);
+
+    List<FlowElement> childElements = elements
+        .where((ele) => ele.parentId == removedElement.parentId)
+        .toList();
+    final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
+    final groupColumnLayoutData =
+        getGroupColumnLayoutData(childElements.toList());
+    final diffElementRows =
+        groupRowLayoutData.length - lastGroupRowLayoutData.length;
+    print("diffElementRows=====>${diffElementRows}");
+    final diffElementColumn =
+        groupColumnLayoutData.length - lastGroupColumnLayoutData.length;
+    if (sourceElement != null) {
+      final sourceElementBottomHandlerPos =
+          sourceElement.getHandlerPosition(Alignment.bottomCenter);
+      final removedEleBottomHandlerPos =
+          removedElement.getHandlerPosition(Alignment.bottomCenter);
+      decreaseHeight =
+          removedEleBottomHandlerPos.dy - sourceElementBottomHandlerPos.dy;
+    }
+
+    (defaultNodeDistance * 2 + defaultHandlerSize * 2) * zoomFactor;
+
+    /// 判断是否需要更新组节点的大小
+    /// 关于高度：如果删除的节点导致行数变少了，需要更新组节点的高度
+    final newGroupElementSize = Size(groupElement.size.width - decreaseWidth,
+        groupElement.size.height + decreaseHeight * diffElementRows);
+
+    ///关于宽度：如果删除的节点导致列数变少了，需要更新组节点的宽度
+    groupElement.size = newGroupElementSize;
+    if (decreaseWidth != 0) {
+      //  更新组节点位置
+      groupElement.position = Offset(
+          groupElement.position.dx + decreaseWidth / 2,
+          groupElement.position.dy);
+      //  子节点dx小于 removedElement.dx都向右移动,反正向左移动
+      for (FlowElement element in childElements) {
+        final leftElement =
+            element.position.dx - removedElement.position.dx < 0;
+        element.changePosition(Offset(
+            element.position.dx + ((leftElement ? 1 : -1) * decreaseWidth / 2),
+            element.position.dy));
+      }
+    }
+    // 如果行数减少了则追加调整组外后续节点的垂直位置
+    if (diffElementRows < 0) {
+      for (var element in elements) {
+        if (element.position.dy > removedElement.position.dy - decreaseHeight &&
+            element.parentId != groupElement.id &&
+            removedElement.parentId != element.id) {
+          element.position = Offset(
+            element.position.dx,
+            element.position.dy + decreaseHeight * diffElementRows,
+          );
+        }
+      }
+    }
     if (notify) notifyListeners();
   }
 

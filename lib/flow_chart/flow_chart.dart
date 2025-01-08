@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easy_flow/flow_chart/ui/draw_group_column_plus.dart';
 import 'package:flutter_easy_flow/flow_chart/ui/element_widget.dart';
 
 import './dashboard.dart';
@@ -19,6 +20,7 @@ class FlowChart extends StatefulWidget {
     super.key,
     this.onElementPressed,
     this.onGoupPlusPressed,
+    this.onGroupColumnPlusNodePressed,
     this.onPlusNodePressed,
     this.onElementSecondaryTapped,
     this.onElementLongPressed,
@@ -79,6 +81,12 @@ class FlowChart extends StatefulWidget {
     FlowElement sourceElement,
     FlowElement destElement,
   )? onPlusNodePressed;
+
+  final void Function(
+    BuildContext context,
+    Offset position,
+    FlowElement destElement,
+  )? onGroupColumnPlusNodePressed;
 
   /// callback for mouse right click event on an element
   final void Function(
@@ -194,6 +202,7 @@ class _FlowChartState extends State<FlowChart> {
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
           final position = Offset(translation.x, translation.y);
+          widget.dashboard.setDashboardSize(size);
 
           if (widget.dashboard.position.dx != position.dx) {
             // 当缩放过大时也会出发，暂时取消
@@ -202,7 +211,6 @@ class _FlowChartState extends State<FlowChart> {
             //   var moveElementOffset = Offset(offsetDx / 2, 0);
             //   widget.dashboard.moveAllElements(moveElementOffset);
             // }
-            widget.dashboard.setDashboardSize(size);
             widget.dashboard.setDashboardPosition(position);
             setState(() {});
           }
@@ -216,6 +224,40 @@ class _FlowChartState extends State<FlowChart> {
     final gridKey = GlobalKey();
     var tapDownPos = Offset.zero;
     var secondaryTapDownPos = Offset.zero;
+
+    List<DrawGroupColumnPlus> drawGroupLayoutPlusElement() {
+      print("drawGroupLayoutPlusElement-======>");
+      final dashboardElements = widget.dashboard.elements;
+      List<DrawGroupColumnPlus> drawGroupColumnPlus = [];
+
+      for (int i = 0; i < dashboardElements.length; i++) {
+        final _element = widget.dashboard.elements[i];
+        if (_element.taskType == TaskType.group) {
+          final childElements =
+              dashboardElements.where((el) => el.parentId == _element.id);
+          if (childElements.isNotEmpty) {
+            final groupColumnLayoutData = widget.dashboard
+                .getGroupColumnLayoutData(childElements.toList());
+            // 获取每一列的最后一个元素
+            for (var columnElements in groupColumnLayoutData) {
+              drawGroupColumnPlus.add(DrawGroupColumnPlus(
+                  dashboard: widget.dashboard,
+                  key: UniqueKey(),
+                  srcElement: columnElements.last,
+                  onGroupColumnPlusNodePressed: (context, position) {
+                    if (widget.onGroupColumnPlusNodePressed != null) {
+                      widget.onGroupColumnPlusNodePressed!(
+                          context, position, columnElements.last);
+                    }
+                  }));
+            }
+          }
+        }
+      }
+
+      return drawGroupColumnPlus;
+    }
+
     return ClipRect(
       child: OverflowBox(
         maxWidth: double.infinity,
@@ -423,6 +465,7 @@ class _FlowChartState extends State<FlowChart> {
                             )]);
                       }
                     }),
+            ...drawGroupLayoutPlusElement(),
             // 绘制线段中转的点
             for (int i = 0; i < widget.dashboard.elements.length; i++)
               for (int n = 0; n < widget.dashboard.elements[i].next.length; n++)

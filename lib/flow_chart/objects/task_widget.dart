@@ -159,7 +159,12 @@ class TaskWidget extends StatelessWidget {
                       ),
                       InkWell(
                           onTap: () {
-                            dashboard.removeElementById(element.id);
+                            if (element.parentId == "") {
+                              dashboard.removeElementById(element.id);
+                            } else {
+                              dashboard
+                                  .removeElementInGroupByElementId(element.id);
+                            }
                           },
                           child: Container(
                             width: toolbarIconWrapperSize,

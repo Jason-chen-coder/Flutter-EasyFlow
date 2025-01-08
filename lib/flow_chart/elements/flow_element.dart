@@ -9,6 +9,10 @@ import '../dashboard.dart';
 import 'connection_params.dart';
 
 const Size defaultElementSize = Size(310, 60);
+const Size defaultGoupElementSize = Size(400, 80);
+const Size defaultPlusElementSize = Size(36, 36);
+const double elementPadding = 10;
+const double defaultHandlerSize = 20;
 
 enum TaskType { none, trigger, delay, timeout, grab, end, plus, group }
 
@@ -101,7 +105,7 @@ class FlowElement extends ChangeNotifier {
   ///
   FlowElement({
     Offset position = Offset.zero,
-    this.size = const Size(310, 60),
+    this.size = defaultElementSize,
     this.text = '',
     this.subTitleText = '',
     this.textColor = Colors.black,
@@ -119,7 +123,7 @@ class FlowElement extends ChangeNotifier {
       Handler.rightCenter,
       Handler.leftCenter,
     ],
-    this.handlerSize = 20,
+    this.handlerSize = defaultHandlerSize,
     this.backgroundColor = Colors.white,
     this.borderRadius = 10,
     this.taskType = TaskType.none,

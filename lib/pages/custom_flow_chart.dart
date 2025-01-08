@@ -160,6 +160,11 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                               _displayGroupPlusElementMenu(
                                   context, position, element);
                             },
+                            onGroupColumnPlusNodePressed:
+                                (context, position, sourceElement) {
+                              _displayGroupColumnPlusNodeMenu(
+                                  context, position, sourceElement);
+                            },
                             onScaleUpdate: (newScale) {},
                             onDashboardLongTapped: (context, position) {
                               final flowElement = FlowElement(
@@ -354,12 +359,121 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
           ActionChip(
             label: const Text('Add Delay'),
             onPressed: () {
-              dashboard.addElementByPlus(
+              final flowElement = FlowElement(
+                position: dashboard.getNextElementPosition(sourceElement),
+                text: 'Delay',
+                subTitleText: "wait for 12 minutes",
+                taskType: TaskType.delay,
+                kind: ElementKind.task,
+                handlers: [
+                  Handler.bottomCenter,
+                  Handler.topCenter,
+                ],
+                parentId:
+                    sourceElement.parentId != '' ? sourceElement.parentId : "",
+              );
+              if (sourceElement.parentId != '') {
+                dashboard.addElementByGroupColumnPlus(
+                    sourceElement, flowElement);
+              } else {
+                dashboard.addElementByPlus(sourceElement, flowElement);
+              }
+            },
+          ),
+          ActionChip(
+            label: const Text('Add Timer Out'),
+            onPressed: () {
+              final flowElement = FlowElement(
+                position: dashboard.getNextElementPosition(sourceElement),
+                text: 'Timer Out',
+                subTitleText: "just 2 minutes",
+                taskType: TaskType.timeout,
+                kind: ElementKind.task,
+                handlers: [
+                  Handler.topCenter,
+                  Handler.bottomCenter,
+                ],
+                parentId:
+                    sourceElement.parentId != '' ? sourceElement.parentId : "",
+              );
+              if (sourceElement.parentId != '') {
+                dashboard.addElementByGroupColumnPlus(
+                    sourceElement, flowElement);
+              } else {
+                dashboard.addElementByPlus(sourceElement, flowElement);
+              }
+            },
+          ),
+          ActionChip(
+            label: const Text('Add Grab'),
+            onPressed: () {
+              final flowElement = FlowElement(
+                position: dashboard.getNextElementPosition(sourceElement),
+                text: 'Grab Samples',
+                subTitleText: "grab 2 PCR samples",
+                taskType: TaskType.grab,
+                kind: ElementKind.task,
+                parentId:
+                    sourceElement.parentId != '' ? sourceElement.parentId : "",
+                handlers: [
+                  Handler.topCenter,
+                  Handler.bottomCenter,
+                ],
+              );
+              if (sourceElement.parentId != '') {
+                dashboard.addElementByGroupColumnPlus(
+                    sourceElement, flowElement);
+              } else {
+                dashboard.addElementByPlus(sourceElement, flowElement);
+              }
+            },
+          ),
+          sourceElement.parentId != ''
+              ? SizedBox()
+              : ActionChip(
+                  label: Text('Add Group'),
+                  onPressed: () {
+                    _addGroupNode(position, sourceElement);
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  void _displayGroupColumnPlusNodeMenu(
+    BuildContext context,
+    Offset position,
+    FlowElement sourceElement,
+  ) {
+    StarMenuOverlay.displayStarMenu(
+      context,
+      StarMenu(
+        params: StarMenuParameters(
+          shape: MenuShape.linear,
+          openDurationMs: 60,
+          linearShapeParams: const LinearShapeParams(
+            angle: 270,
+            alignment: LinearAlignment.left,
+            space: 10,
+          ),
+          // calculate the offset from the dashboard center
+          centerOffset: position - const Offset(-50, 90),
+        ),
+        onItemTapped: (index, controller) => controller.closeMenu!(),
+        parentContext: context,
+        items: [
+          ActionChip(
+            backgroundColor: Colors.red,
+            label: const Text('Add Delay'),
+            onPressed: () {
+              dashboard.addElementByGroupColumnBottomPlus(
                   sourceElement,
                   FlowElement(
                     position: dashboard.getNextElementPosition(sourceElement),
                     text: 'Delay',
                     subTitleText: "wait for 12 minutes",
+                    parentId: sourceElement.parentId,
                     taskType: TaskType.delay,
                     kind: ElementKind.task,
                     handlers: [
@@ -370,15 +484,17 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
             },
           ),
           ActionChip(
+            backgroundColor: Colors.red,
             label: const Text('Add Timer Out'),
             onPressed: () {
-              dashboard.addElementByPlus(
+              dashboard.addElementByGroupColumnBottomPlus(
                   sourceElement,
                   FlowElement(
                     position: dashboard.getNextElementPosition(sourceElement),
                     text: 'Timer Out',
                     subTitleText: "just 2 minutes",
                     taskType: TaskType.timeout,
+                    parentId: sourceElement.parentId,
                     kind: ElementKind.task,
                     handlers: [
                       Handler.topCenter,
@@ -388,9 +504,10 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
             },
           ),
           ActionChip(
+            backgroundColor: Colors.red,
             label: const Text('Add Grab'),
             onPressed: () {
-              dashboard.addElementByPlus(
+              dashboard.addElementByGroupColumnBottomPlus(
                   sourceElement,
                   FlowElement(
                     position: dashboard.getNextElementPosition(sourceElement),
@@ -398,17 +515,12 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                     subTitleText: "grab 2 PCR samples",
                     taskType: TaskType.grab,
                     kind: ElementKind.task,
+                    parentId: sourceElement.parentId,
                     handlers: [
                       Handler.topCenter,
                       Handler.bottomCenter,
                     ],
                   ));
-            },
-          ),
-          ActionChip(
-            label: const Text('Add Group'),
-            onPressed: () {
-              _addGroupNode(position, sourceElement);
             },
           ),
         ],
@@ -439,9 +551,10 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
         parentContext: context,
         items: [
           ActionChip(
+            backgroundColor: Color(0xff6cd7a3),
             label: const Text('Add Delay'),
             onPressed: () {
-              dashboard.addElementByGroupPlus(
+              dashboard.addElementByGroupRightPlus(
                   sourceElement,
                   FlowElement(
                       parentId: sourceElement.id,
@@ -450,13 +563,14 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                       taskType: TaskType.delay,
                       kind: ElementKind.task,
                       isDraggable: true,
-                      handlers: []));
+                      handlers: [Handler.bottomCenter]));
             },
           ),
           ActionChip(
+            backgroundColor: Color(0xff6cd7a3),
             label: const Text('Add Timer Out'),
             onPressed: () {
-              dashboard.addElementByGroupPlus(
+              dashboard.addElementByGroupRightPlus(
                   sourceElement,
                   FlowElement(
                       parentId: sourceElement.id,
@@ -465,13 +579,14 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                       taskType: TaskType.timeout,
                       kind: ElementKind.task,
                       isDraggable: true,
-                      handlers: []));
+                      handlers: [Handler.bottomCenter]));
             },
           ),
           ActionChip(
+            backgroundColor: Color(0xff6cd7a3),
             label: const Text('Add Grab'),
             onPressed: () {
-              dashboard.addElementByGroupPlus(
+              dashboard.addElementByGroupRightPlus(
                   sourceElement,
                   FlowElement(
                       parentId: sourceElement.id,
@@ -480,7 +595,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                       taskType: TaskType.grab,
                       kind: ElementKind.task,
                       isDraggable: true,
-                      handlers: []));
+                      handlers: [Handler.bottomCenter]));
             },
           ),
         ],
@@ -490,8 +605,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
 
   void _addGroupNode(Offset position, FlowElement sourceElement) {
     final groupElement = FlowElement(
-      size: Size(400, 80),
-      position: dashboard.getNextElementPosition(sourceElement),
+      size: defaultGoupElementSize,
+      position: dashboard.getNextElementPosition(sourceElement,
+          targetElementSize: defaultGoupElementSize),
       text: 'Group',
       taskType: TaskType.group,
       kind: ElementKind.group,
