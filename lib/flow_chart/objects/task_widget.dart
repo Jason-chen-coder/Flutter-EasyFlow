@@ -143,17 +143,17 @@ class TaskWidget extends StatelessWidget {
                   right: 10 * element.zoom,
                   child: Row(
                     children: [
-                      Container(
-                        width: toolbarIconWrapperSize,
-                        height: toolbarIconWrapperSize,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF4f5158),
-                          borderRadius:
-                              BorderRadius.circular(toolbarIconWrapperSize / 2),
-                        ),
-                        child: Icon(Icons.edit,
-                            color: Colors.white, size: toolbarIconSize),
-                      ),
+                      // Container(
+                      //   width: toolbarIconWrapperSize,
+                      //   height: toolbarIconWrapperSize,
+                      //   decoration: BoxDecoration(
+                      //     color: const Color(0xFF4f5158),
+                      //     borderRadius:
+                      //         BorderRadius.circular(toolbarIconWrapperSize / 2),
+                      //   ),
+                      //   child: Icon(Icons.edit,
+                      //       color: Colors.white, size: toolbarIconSize),
+                      // ),
                       SizedBox(
                         width: 8 * element.zoom,
                       ),

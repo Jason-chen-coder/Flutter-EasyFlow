@@ -38,7 +38,7 @@ class HandlerWidget extends StatelessWidget {
           Radius.circular(width),
         ),
         border: Border.all(
-          width: width ==0 ? 0 :1,
+          width: width == 0 ? 0 : 1,
           color: borderColor,
         ),
       ),

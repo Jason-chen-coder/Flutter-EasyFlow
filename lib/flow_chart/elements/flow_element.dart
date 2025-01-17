@@ -151,14 +151,14 @@ class FlowElement extends ChangeNotifier {
   ///
   factory FlowElement.fromMap(Map<String, dynamic> map) {
     final e = FlowElement(
-      size: Size(map['size.width'] as double, map['size.height'] as double),
+      size: Size(map['size.width'].toDouble(), map['size.height'].toDouble()),
       text: map['text'] as String,
       textColor: Color(map['textColor'] as int),
       subTitleText: map['subTitleText'] as String,
       fontFamily: map['fontFamily'] as String?,
-      textSize: map['textSize'] as double,
-      subTitleTextSize: map['subTitleTextSize'] as double,
-      iconSize: map['iconSize'] as double,
+      textSize: map['textSize'].toDouble(),
+      subTitleTextSize: map['subTitleTextSize'].toDouble(),
+      iconSize: map['iconSize'].toDouble(),
       parentId: map['parentId'] as String,
       textIsBold: map['textIsBold'] as bool,
       kind: ElementKind.values[map['kind'] as int],
@@ -167,13 +167,13 @@ class FlowElement extends ChangeNotifier {
           (x) => Handler.values[x as int],
         ),
       ),
-      handlerSize: map['handlerSize'] as double,
+      handlerSize: map['handlerSize'].toDouble(),
       backgroundColor: Color(map['backgroundColor'] as int),
-      borderRadius: map['borderRadius'] as double,
+      borderRadius: map['borderRadius'].toDouble(),
       taskType: TaskType.values[map['taskType'] as int],
       borderColor: Color(map['borderColor'] as int),
-      borderThickness: map['borderThickness'] as double,
-      elevation: map['elevation'] as double,
+      borderThickness: map['borderThickness'].toDouble(),
+      elevation: map['elevation'].toDouble(),
       next: (map['next'] as List).isNotEmpty
           ? List<ConnectionParams>.from(
               (map['next'] as List<dynamic>).map<dynamic>(
@@ -188,8 +188,8 @@ class FlowElement extends ChangeNotifier {
     )
       ..setId(map['id'] as String)
       ..position = Offset(
-        map['positionDx'] as double,
-        map['positionDy'] as double,
+        map['positionDx'].toDouble(),
+        map['positionDy'].toDouble(),
       )
       ..serializedData = map['data'] as String?;
     return e;
@@ -499,7 +499,7 @@ class FlowElement extends ChangeNotifier {
       'handlerSize': handlerSize,
       'backgroundColor': backgroundColor.value,
       'borderRadius': borderRadius,
-      'taskType': taskType.toStringValue,
+      'taskType': taskType.index,
       'borderColor': borderColor.value,
       'borderThickness': borderThickness,
       'elevation': elevation,

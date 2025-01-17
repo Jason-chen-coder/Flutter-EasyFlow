@@ -2,12 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easy_flow/flow_chart/ui/draw_group_column_plus.dart';
+import 'package:flutter_easy_flow/flow_chart/ui/draw_plus.dart';
 import 'package:flutter_easy_flow/flow_chart/ui/element_widget.dart';
 
 import './dashboard.dart';
 import './elements/flow_element.dart';
 import './ui/draw_arrow.dart';
-import './ui/draw_plus.dart';
 import './ui/grid_background.dart';
 import './ui/segment_handler.dart';
 
@@ -162,6 +162,7 @@ class FlowChart extends StatefulWidget {
 }
 
 class _FlowChartState extends State<FlowChart> {
+  bool scaling = false;
   @override
   void initState() {
     super.initState();
@@ -264,7 +265,6 @@ class _FlowChartState extends State<FlowChart> {
                         factor,
                         focalPoint: details.focalPoint,
                       );
-                      widget.dashboard.setDashboardScaling(true);
                     }
                     // 拖动画布
                     /// 设置网格相对位置
@@ -273,25 +273,20 @@ class _FlowChartState extends State<FlowChart> {
                     // );
 
                     /// 设置节点的位置
-                    // widget.dashboard
-                    //     .moveAllElements(details.focalPointDelta, notify: false);
-                    for (var i = 0; i < widget.dashboard.elements.length; i++) {
-                      widget.dashboard.elements[i].position +=
-                          details.focalPointDelta;
-                      for (final conn in widget.dashboard.elements[i].next) {
-                        for (final pivot in conn.pivots) {
-                          pivot.pivot += details.focalPointDelta;
-                        }
-                      }
-                    }
+                    widget.dashboard.moveAllElements(details.focalPointDelta);
+
                     widget.dashboard.gridBackgroundParams.offset =
                         details.focalPointDelta;
-                    setState(() {});
+                    setState(() {
+                      scaling = true;
+                    });
                   },
                   onScaleEnd: (details) {
                     widget.dashboard.setOldScaleUpdateDelta(
                         widget.dashboard.zoomFactor - 1);
-                    widget.dashboard.setDashboardScaling(false);
+                    setState(() {
+                      scaling = false;
+                    });
                   },
                   child: GridBackground(
                     key: gridKey,
@@ -299,8 +294,7 @@ class _FlowChartState extends State<FlowChart> {
                   ),
                 ),
               ),
-              // 合并遍历
-              for (int i = 0; i < widget.dashboard.elements.length; i++) ...[
+              for (int i = 0; i < widget.dashboard.elements.length; i++)
                 // 绘制 elements
                 ElementWidget(
                   key: UniqueKey(),
@@ -391,6 +385,8 @@ class _FlowChartState extends State<FlowChart> {
                                 element,
                               ),
                 ),
+              // 合并遍历
+              for (int i = 0; i < widget.dashboard.elements.length; i++) ...[
                 for (int n = 0;
                     n < widget.dashboard.elements[i].next.length;
                     n++) ...[
@@ -406,61 +402,51 @@ class _FlowChartState extends State<FlowChart> {
                         .elements[widget.dashboard.findElementIndexById(
                       widget.dashboard.elements[i].next[n].destElementId,
                     )],
+                    scaling: scaling,
                   ),
                   // 绘制连线之间的加号
-                  DrawPlus(
-                      dashboard: widget.dashboard,
-                      arrowParams:
-                          widget.dashboard.elements[i].next[n].arrowParams,
-                      pivots: widget.dashboard.elements[i].next[n].pivots,
-                      key: UniqueKey(),
-                      srcElement: widget.dashboard.elements[i],
-                      destElement: widget.dashboard
-                          .elements[widget.dashboard.findElementIndexById(
-                        widget.dashboard.elements[i].next[n].destElementId,
-                      )],
-                      onPlusNodePressed: (context, position) {
-                        if (widget.onPlusNodePressed != null) {
-                          widget.onPlusNodePressed!(
-                              context,
-                              position,
-                              widget.dashboard.elements[i],
-                              widget.dashboard.elements[
-                                  widget.dashboard.findElementIndexById(
-                                widget.dashboard.elements[i].next[n]
-                                    .destElementId,
-                              )]);
-                        }
-                      }),
-                  // 绘制线段中转的点
-                  if (widget.dashboard.elements[i].next[n].arrowParams.style ==
-                      ArrowStyle.segmented)
-                    for (int j = 0;
-                        j < widget.dashboard.elements[i].next[n].pivots.length;
-                        j++)
-                      SegmentHandler(
-                        key: UniqueKey(),
-                        pivot: widget.dashboard.elements[i].next[n].pivots[j],
+                  if (!scaling)
+                    DrawPlus(
                         dashboard: widget.dashboard,
-                        onPivotPressed: widget.onPivotPressed,
-                        onPivotSecondaryPressed: widget.onPivotSecondaryPressed,
-                      ),
+                        arrowParams:
+                            widget.dashboard.elements[i].next[n].arrowParams,
+                        pivots: widget.dashboard.elements[i].next[n].pivots,
+                        key: UniqueKey(),
+                        srcElement: widget.dashboard.elements[i],
+                        destElement: widget.dashboard
+                            .elements[widget.dashboard.findElementIndexById(
+                          widget.dashboard.elements[i].next[n].destElementId,
+                        )],
+                        onPlusNodePressed: (context, position) {
+                          if (widget.onPlusNodePressed != null) {
+                            widget.onPlusNodePressed!(
+                                context,
+                                position,
+                                widget.dashboard.elements[i],
+                                widget.dashboard.elements[
+                                    widget.dashboard.findElementIndexById(
+                                  widget.dashboard.elements[i].next[n]
+                                      .destElementId,
+                                )]);
+                          }
+                        }),
                 ],
               ],
-              // 绘制组节点的加号
-              for (var groupLayoutData
-                  in widget.dashboard.allGroupsLayoutData.values)
-                for (var columnElements in groupLayoutData.rowsLayoutData)
-                  DrawGroupColumnPlus(
-                      dashboard: widget.dashboard,
-                      key: UniqueKey(),
-                      srcElement: columnElements.last,
-                      onGroupColumnPlusNodePressed: (context, position) {
-                        if (widget.onGroupColumnPlusNodePressed != null) {
-                          widget.onGroupColumnPlusNodePressed!(
-                              context, position, columnElements.last);
-                        }
-                      }),
+              // 绘制组节点每一列最下面的加号
+              if (!scaling)
+                for (var groupLayoutData
+                    in widget.dashboard.allGroupsLayoutData.values)
+                  for (var columnElements in groupLayoutData.columnsLayoutData)
+                    DrawGroupColumnPlus(
+                        dashboard: widget.dashboard,
+                        key: UniqueKey(),
+                        srcElement: columnElements.last,
+                        onGroupColumnPlusNodePressed: (context, position) {
+                          if (widget.onGroupColumnPlusNodePressed != null) {
+                            widget.onGroupColumnPlusNodePressed!(
+                                context, position, columnElements.last);
+                          }
+                        }),
               // 绘制用户正在连接时的预览线
               DrawingArrowWidget(
                   style: widget.dashboard.defaultArrowStyle,

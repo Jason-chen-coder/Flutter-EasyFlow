@@ -172,14 +172,6 @@ class Dashboard extends ChangeNotifier {
 
   get allElementsDraggable => _allElementsDraggable;
 
-  /// 画布是否正在放大缩小
-  bool _dashboardScaling = false;
-
-  get dashboardScaling => _dashboardScaling;
-  setDashboardScaling(bool value) {
-    _dashboardScaling = value;
-  }
-
   double _oldScaleUpdateDelta = 0;
   get oldScaleUpdateDelta => _oldScaleUpdateDelta;
 
@@ -310,18 +302,14 @@ class Dashboard extends ChangeNotifier {
     }
     // 计算所有元素的包围区域
     RectangleBounds boundingBoxSize = calculateBoundingBox(elements);
-    print("boundingBoxSize.size:${boundingBoxSize.size}");
     // 屏幕中心点
     final center = Offset(dashboardSize.width / 2, dashboardSize.height / 2) +
         _dashboardPosition;
     gridBackgroundParams.offset = center;
     // 区域偏移
     final currentDeviation = boundingBoxSize.center - center;
-    print(
-        "calculateScale(boundingBoxSize.size, dashboardSize)==>${calculateScale(boundingBoxSize.size, dashboardSize)}");
     double newZoomFactor = calculateScale(boundingBoxSize.size, dashboardSize) +
         _oldScaleUpdateDelta;
-    print("=setFullView=======>newZoomFactor:${newZoomFactor}");
     for (final element in elements) {
       element.position -= currentDeviation;
       for (final next in element.next) {
@@ -1010,7 +998,7 @@ class Dashboard extends ChangeNotifier {
     return null;
   }
 
-  void moveAllElements(Offset offset, {bool notify = true}) {
+  void moveAllElements(Offset offset) {
     for (var i = 0; i < elements.length; i++) {
       elements[i].position += offset;
       for (final conn in elements[i].next) {
@@ -1019,7 +1007,6 @@ class Dashboard extends ChangeNotifier {
         }
       }
     }
-    if (notify) notifyListeners();
   }
 
   /// 移除所有节点
@@ -1279,12 +1266,8 @@ class Dashboard extends ChangeNotifier {
         .where((ele) => ele.parentId == removedElement.parentId)
         .toList();
     final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
-    // final groupColumnLayoutData =
-    //     getGroupColumnLayoutData(childElements.toList());
     final diffElementRows =
         groupRowLayoutData.length - lastGroupRowLayoutData.length;
-    // final diffElementColumn =
-    //     groupColumnLayoutData.length - lastGroupColumnLayoutData.length;
     if (sourceElement != null) {
       final sourceElementBottomHandlerPos =
           sourceElement.getHandlerPosition(Alignment.bottomCenter);

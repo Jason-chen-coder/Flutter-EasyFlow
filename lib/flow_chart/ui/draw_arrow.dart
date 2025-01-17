@@ -197,7 +197,9 @@ class DrawArrow extends StatefulWidget {
     required List<Pivot> pivots,
     super.key,
     ArrowParams? arrowParams,
+    bool? scaling,
   })  : arrowParams = arrowParams ?? ArrowParams(),
+        scaling = scaling ?? false,
         pivots = PivotsNotifier(pivots);
 
   ///
@@ -205,6 +207,8 @@ class DrawArrow extends StatefulWidget {
 
   ///
   final ArrowParams arrowParams;
+
+  final bool scaling;
 
   ///
   final FlowElement srcElement;
@@ -279,6 +283,7 @@ class _DrawArrowState extends State<DrawArrow> {
               from: from,
               to: to,
               pivots: widget.pivots.value,
+              scaling: widget.scaling,
             ),
             child: SizedBox(),
           );
@@ -300,7 +305,9 @@ class ArrowPainter extends CustomPainter {
     List<Pivot>? pivots,
     FlowElement? srcElement,
     FlowElement? destElement,
+    bool? scaling,
   })  : pivots = pivots ?? [],
+        scaling = scaling ?? false,
         srcElement = srcElement ?? FlowElement(),
         destElement = destElement ?? FlowElement();
 
@@ -309,6 +316,8 @@ class ArrowPainter extends CustomPainter {
 
   ///
   final Offset from;
+
+  final bool scaling;
 
   ///
   final Offset to;
@@ -386,7 +395,7 @@ class ArrowPainter extends CustomPainter {
     final fillPaint = Paint()
       ..strokeWidth = params.thickness
       ..color = const Color(0xFF4f5158);
-    canvas.drawCircle(position, params.headRadius, borderPaint);
+    if (!scaling) canvas.drawCircle(position, params.headRadius, borderPaint);
     canvas.drawCircle(position, params.headRadius, fillPaint);
   }
 
