@@ -37,20 +37,20 @@ class ArrowParams extends ChangeNotifier {
   ///
   factory ArrowParams.fromMap(Map<String, dynamic> map) {
     return ArrowParams(
-      thickness: map['thickness'] as double,
-      headRadius: map['headRadius'] as double? ?? 4.0,
-      plusNodeSize: map['plusNodeSize'] as double? ?? 16.0,
-      tailLength: map['tailLength'] as double? ?? 25.0,
+      thickness: map['thickness'].toDouble(),
+      headRadius: (map['headRadius'] ?? 4.0).toDouble(),
+      plusNodeSize: (map['plusNodeSize'] ?? 16.0).toDouble(),
+      tailLength: (map['tailLength'] ?? 25.0).toDouble(),
       color: Color(map['color'] as int),
       style: ArrowStyle.values[map['style'] as int? ?? 0],
-      tension: map['tension'] as double? ?? 1,
+      tension: (map['tension'] ?? 1).toDouble(),
       startArrowPosition: Alignment(
-        map['startArrowPositionX'] as double,
-        map['startArrowPositionY'] as double,
+        map['startArrowPositionX'].toDouble(),
+        map['startArrowPositionY'].toDouble(),
       ),
       endArrowPosition: Alignment(
-        map['endArrowPositionX'] as double,
-        map['endArrowPositionY'] as double,
+        map['endArrowPositionX'].toDouble(),
+        map['endArrowPositionY'].toDouble(),
       ),
     );
   }

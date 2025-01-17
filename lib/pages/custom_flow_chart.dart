@@ -1,15 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:highlight/languages/json.dart';
 import 'package:star_menu/star_menu.dart';
 
 import '../flow_chart/dashboard.dart';
 import '../flow_chart/elements/flow_element.dart';
 import '../flow_chart/flow_chart.dart';
-import 'code_editor_theme.dart';
 
 class CustomFlowChart extends StatefulWidget {
   static String name = 'CustomFlowChart';
@@ -26,6 +23,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   late bool allElementsDraggable;
   int selectedIndex = 0;
   Offset currentPosition = Offset(0, 0);
+  Timer? _debounceTimer;
   _CustomFlowChartState() {
     dashboard = Dashboard();
     allElementsDraggable = dashboard.allElementsDraggable;
@@ -41,11 +39,15 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   }
 
   void _onDashboardJsonChanged() {
-    setState(() {});
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     dashboard.removeListener(_onDashboardJsonChanged);
     dashboard.dispose();
     super.dispose();
@@ -116,34 +118,34 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
           Expanded(
             child: Row(
               children: [
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  constraints: BoxConstraints(
-                    minWidth: 450,
-                    maxWidth: 480,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(0xffffffff),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CodeTheme(
-                        data: CodeThemeData(styles: editorDefaultTheme),
-                        child: SingleChildScrollView(
-                            child: CodeField(
-                          enabled: false,
-                          wrap: true,
-                          controller: CodeController(
-                            text: dashboard.toPrettyJsonString,
-                            language: json,
-                          ),
-                          minLines: 1,
-                        )),
-                      );
-                    },
-                  ),
-                ),
+                // Container(
+                //   width: double.infinity,
+                //   height: double.infinity,
+                //   constraints: BoxConstraints(
+                //     minWidth: 450,
+                //     maxWidth: 480,
+                //   ),
+                //   decoration: BoxDecoration(
+                //     color: Color(0xffffffff),
+                //   ),
+                //   child: LayoutBuilder(
+                //     builder: (context, constraints) {
+                //       return CodeTheme(
+                //         data: CodeThemeData(styles: editorDefaultTheme),
+                //         child: SingleChildScrollView(
+                //             child: CodeField(
+                //           enabled: false,
+                //           wrap: true,
+                //           controller: CodeController(
+                //             text: dashboard.toPrettyJsonString,
+                //             language: json,
+                //           ),
+                //           minLines: 1,
+                //         )),
+                //       );
+                //     },
+                //   ),
+                // ),
                 Expanded(
                   child: Stack(
                     children: [
@@ -166,23 +168,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                                   context, position, sourceElement);
                             },
                             onScaleUpdate: (newScale) {},
-                            onDashboardLongTapped: (context, position) {
-                              final flowElement = FlowElement(
-                                size: Size(36, 36),
-                                elevation: 0,
-                                iconSize: 20,
-                                text: 'plus',
-                                position: Offset(0, 0),
-                                taskType: TaskType.plus,
-                                kind: ElementKind.plus,
-                                isDraggable: true,
-                                handlers: [
-                                  Handler.bottomCenter,
-                                  Handler.topCenter,
-                                ],
-                              );
-                              dashboard.addElement(flowElement);
-                            },
+                            onDashboardLongTapped: (context, position) {},
                             // 单击元素时的回调
                             onElementPressed: (context, position, element) {
                               dashboard.setSelectedElement(element.id);
