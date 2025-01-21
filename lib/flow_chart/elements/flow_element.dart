@@ -123,6 +123,8 @@ class FlowElement extends ChangeNotifier {
       Handler.rightCenter,
       Handler.leftCenter,
     ],
+    this.rowsElementIds = const [],
+    this.colsElementIds = const [],
     this.handlerSize = defaultHandlerSize,
     this.backgroundColor = Colors.white,
     this.borderRadius = 10,
@@ -167,6 +169,8 @@ class FlowElement extends ChangeNotifier {
           (x) => Handler.values[x as int],
         ),
       ),
+      rowsElementIds: map['rowsElementIds'] as List<List<String>>,
+      colsElementIds: map['colsElementIds'] as List<List<String>>,
       handlerSize: map['handlerSize'].toDouble(),
       backgroundColor: Color(map['backgroundColor'] as int),
       borderRadius: map['borderRadius'].toDouble(),
@@ -239,6 +243,12 @@ class FlowElement extends ChangeNotifier {
 
   /// Connection handlers
   List<Handler> handlers;
+
+  // 节点内所有行的元素ID
+  List<List<String>> rowsElementIds = [];
+
+  // 节点内所有列的元素ID
+  List<List<String>> colsElementIds = [];
 
   /// The size of element handlers
   double handlerSize;
@@ -473,6 +483,8 @@ class FlowElement extends ChangeNotifier {
         next.hashCode ^
         isResizable.hashCode ^
         isConnectable.hashCode ^
+        rowsElementIds.hashCode ^
+        colsElementIds.hashCode ^
         isDeletable.hashCode;
   }
 
@@ -499,6 +511,8 @@ class FlowElement extends ChangeNotifier {
       'handlerSize': handlerSize,
       'backgroundColor': backgroundColor.value,
       'borderRadius': borderRadius,
+      'rowsElementIds': rowsElementIds,
+      'colsElementIds': colsElementIds,
       'taskType': taskType.index,
       'borderColor': borderColor.value,
       'borderThickness': borderThickness,

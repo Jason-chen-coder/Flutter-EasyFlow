@@ -103,7 +103,7 @@ class TaskWidget extends StatelessWidget {
                     ),
                     SizedBox(height: 2 * element.zoom),
                     Text(
-                      element.subTitleText,
+                      element.id.substring(0, 5),
                       style: subtitleTextStyle,
                     )
                   ],

@@ -286,8 +286,8 @@ class Dashboard extends ChangeNotifier {
             .toList();
         final groupLayoutData = GroupLayoutData(
           id: groupElement.id,
-          columnsLayoutData: getGroupColumnLayoutData(childElements),
-          rowsLayoutData: getGroupRowLayoutData(childElements),
+          columnsLayoutData: getGroupColumnLayoutData(groupElement.id),
+          rowsLayoutData: getGroupRowLayoutData(childElements, groupElement.id),
         );
         _allGroupsLayoutData[groupElement.id] = groupLayoutData;
       }).toList();
@@ -447,12 +447,26 @@ class Dashboard extends ChangeNotifier {
     final groupElement = elements.firstWhere(
       (element) => element.id == sourceElement.parentId,
     );
-    final lastChildElements =
-        elements.where((el) => el.parentId == groupElement.id);
-    final lastGroupRowLayoutData =
-        getGroupRowLayoutData(lastChildElements.toList());
     // 新增节点
     addElement(orderElement);
+    final lastRowNum = groupElement.rowsElementIds.length;
+
+    final sourceElementColumnIndex = groupElement.colsElementIds
+        .indexWhere((elementIds) => elementIds.contains(sourceElement.id));
+    final sourceElementRowIndex = groupElement.rowsElementIds
+        .indexWhere((elementIds) => elementIds.contains(sourceElement.id));
+    final columnNum = groupElement.colsElementIds.length;
+    for (int i = 0; i < columnNum; i++) {
+      if (i == sourceElementColumnIndex) {
+        groupElement.colsElementIds[i]
+            .insert(sourceElementRowIndex + 1, orderElement.id);
+      } else {
+        groupElement.colsElementIds[i].add("");
+      }
+    }
+    groupElement.colsElementIds =
+        cleanLastEmptyItems(groupElement.colsElementIds);
+    groupElement.rowsElementIds = transpose(groupElement.colsElementIds);
 
     // 选中当前节点
     setSelectedElement(orderElement.id);
@@ -480,8 +494,6 @@ class Dashboard extends ChangeNotifier {
 
       ///  调整当前组当前节点所在的列后续节点的垂直位置
       final sourceDy = sourceElement.position.dy;
-      final childElements =
-          elements.where((el) => el.parentId == groupElement.id).toList();
       for (int i = 0; i < bottomOfSourceElementIds.length; i++) {
         final destElement = findElementById(bottomOfSourceElementIds[i])!;
         if ((destElement.position.dy > sourceDy.toDouble())) {
@@ -491,9 +503,7 @@ class Dashboard extends ChangeNotifier {
       }
 
       ///  更新组节点大小
-      final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
-      final diffElementRows =
-          groupRowLayoutData.length - lastGroupRowLayoutData.length;
+      final diffElementRows = groupElement.rowsElementIds.length - lastRowNum;
       final newGroupElementSize = Size(groupElement.size.width,
           groupElement.size.height + addHeight * diffElementRows);
       final diffHeight = newGroupElementSize.height - groupElement.size.height;
@@ -501,14 +511,14 @@ class Dashboard extends ChangeNotifier {
       /// 预留判断：
       ///  判断source的所在的列最后一个元素是否是整个组内的最后一行，最后一行才需要更新组节点大小
       ///  找到source所在列的最后一个元素
-      FlowElement? sourceColumnLastElement =
-          findElementById(bottomOfSourceElementIds.last);
-      bool elementIsLastRow = sourceColumnLastElement == null
-          ? false
-          : checkElementIsLastRow(sourceColumnLastElement, groupRowLayoutData);
-      if (elementIsLastRow) {
-        groupElement.size = newGroupElementSize;
-      }
+      // FlowElement? sourceColumnLastElement =
+      //     findElementById(bottomOfSourceElementIds.last);
+      // bool elementIsLastRow = sourceColumnLastElement == null
+      //     ? false
+      //     : checkElementIsLastRow(sourceColumnLastElement, groupRowLayoutData);
+      // if (elementIsLastRow) {
+      groupElement.size = newGroupElementSize;
+      // }
 
       for (int i = 0; i < elements.length; i++) {
         if (elements[i].position.dy >= orderElement.position.dy &&
@@ -561,18 +571,6 @@ class Dashboard extends ChangeNotifier {
     return destElementIds;
   }
 
-//  判断element是否是组内的最后一行
-  bool checkElementIsLastRow(
-      FlowElement element, List<List<FlowElement>> groupRowLayoutData) {
-    // final lastRow = groupRowLayoutData.last;
-    // 最后一行中y坐标最大的元素
-    FlowElement maxDyElement = groupRowLayoutData.last.reduce((current, next) =>
-        current.position.dy > next.position.dy ? current : next);
-
-    // 是否是lastRow最后一个元素
-    return maxDyElement.position.dy == element.position.dy;
-  }
-
 //  判断element是否是组内的最后一列
   bool checkElementIsLastColumn(FlowElement element) {
     return false;
@@ -602,13 +600,28 @@ class Dashboard extends ChangeNotifier {
       (element) => element.id == sourceElement.parentId,
     );
 
-    final lastChildElements =
-        elements.where((el) => el.parentId == groupElement.id);
-    final lastGroupRowLayoutData =
-        getGroupRowLayoutData(lastChildElements.toList());
-
     /// 新增节点(节点先进画布，获取真实宽高)
     addElement(orderElement);
+    // 通过sourceElementId找到他在groupElement.colsElementIds所在列
+    final lastRowNum = groupElement.rowsElementIds.length;
+
+    final sourceElementColumnIndex = groupElement.colsElementIds
+        .indexWhere((elementIds) => elementIds.contains(sourceElement.id));
+    final sourceElementRowIndex = groupElement.rowsElementIds
+        .indexWhere((elementIds) => elementIds.contains(sourceElement.id));
+    final columnNum = groupElement.colsElementIds.length;
+    for (int i = 0; i < columnNum; i++) {
+      if (i == sourceElementColumnIndex) {
+        groupElement.colsElementIds[i]
+            .insert(sourceElementRowIndex + 1, orderElement.id);
+      } else {
+        groupElement.colsElementIds[i].add("");
+      }
+    }
+
+    groupElement.colsElementIds =
+        cleanLastEmptyItems(groupElement.colsElementIds);
+    groupElement.rowsElementIds = transpose(groupElement.colsElementIds);
 
     ///连接新节点
     addNextById(
@@ -621,13 +634,8 @@ class Dashboard extends ChangeNotifier {
       ),
     );
     setSelectedElement(orderElement.id);
-    final childElements =
-        elements.where((el) => el.parentId == groupElement.id);
 
-    final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
-
-    final diffElementRows =
-        groupRowLayoutData.length - lastGroupRowLayoutData.length;
+    final diffElementRows = groupElement.rowsElementIds.length - lastRowNum;
 
     ///  更新组节点大小
     final orderElementBottomHandlerPos =
@@ -667,6 +675,23 @@ class Dashboard extends ChangeNotifier {
 
     /// 新增节点(节点先进画布，获取真实宽高)
     addElement(orderElement);
+    groupElement.rowsElementIds = List.from(groupElement
+        .rowsElementIds); // 第一行的最后一个元素为orderElement.id，其他行的最后一个元素是""
+    if (groupElement.rowsElementIds.isNotEmpty) {
+      for (int i = 0; i < groupElement.rowsElementIds.length; i++) {
+        if (i == 0) {
+          groupElement.rowsElementIds[i].add(orderElement.id);
+        } else {
+          groupElement.rowsElementIds[i].add("");
+        }
+      }
+    } else {
+      groupElement.rowsElementIds.add([orderElement.id]); // 新增节点在第一行
+    }
+    groupElement.rowsElementIds =
+        cleanLastEmptyItems(groupElement.rowsElementIds);
+    groupElement.colsElementIds = transpose(groupElement.rowsElementIds);
+
     setSelectedElement(orderElement.id);
     final offsetWidth = (orderElement.size.width + currentGroupElementSpacing);
 
@@ -687,9 +712,10 @@ class Dashboard extends ChangeNotifier {
           groupElement.position.dx - offsetWidth / 2, groupElement.position.dy);
 
       ///   获取最右一列的坐标，并更新节点坐标
-      List<FlowElement> lastRowsDx =
-          getGroupColumnLayoutData(lastChildElements).last;
-      final elementDx = lastRowsDx.first.position.dx +
+      final elementDx = findElementById(groupElement.rowsElementIds
+                  .first[groupElement.rowsElementIds.first.length - 2])!
+              .position
+              .dx +
           (orderElement.size.width + currentGroupElementSpacing);
       orderElement.changePosition(Offset(elementDx, groupStartPosition.dy));
       List<FlowElement> childElements =
@@ -724,55 +750,39 @@ class Dashboard extends ChangeNotifier {
 
 // 获取行布局数据
   List<List<FlowElement>> getGroupRowLayoutData(
-      List<FlowElement> childElements) {
+      List<FlowElement> childElements, String groupId) {
+    FlowElement? groupElement = findElementById(groupId);
     List<List<FlowElement>> groupRowLayoutData = [];
-
-    /// 获取所有行数的Dy
-    final subElementsOrderDy = childElements
-        .map((childEle) => childEle.position.dy.toStringAsFixed(4))
-        .toSet()
-        .toList();
-    subElementsOrderDy.sort();
-
-    List<List<FlowElement>> rows =
-        List.generate(subElementsOrderDy.length, (_) => []);
-    for (int i = 0; i < subElementsOrderDy.length; i++) {
-      for (int j = 0; j < childElements.length; j++) {
-        if (childElements[j].position.dy.toStringAsFixed(4) ==
-            subElementsOrderDy[i]) {
-          rows[i].add(childElements[j]);
+    if (groupElement != null) {
+      for (var rowElementIds in groupElement.rowsElementIds) {
+        List<FlowElement> rowElements = [];
+        for (var elementId in rowElementIds) {
+          if (elementId != "") {
+            FlowElement element = findElementById(elementId)!;
+            rowElements.add(element);
+          }
         }
+        groupRowLayoutData.add(rowElements);
       }
-      // 根据dx的值从小到大排序
-      rows[i].sort((a, b) => a.position.dx.compareTo(b.position.dx));
-      groupRowLayoutData.add(rows[i]);
     }
     return groupRowLayoutData;
   }
 
 // 获取列布局数据
-  List<List<FlowElement>> getGroupColumnLayoutData(
-      List<FlowElement> childElements) {
+  List<List<FlowElement>> getGroupColumnLayoutData(String groupId) {
+    FlowElement? groupElement = findElementById(groupId);
     List<List<FlowElement>> groupColumnLayoutData = [];
-
-    /// 获取所有列数的Dx
-    final subElementsOrderDx = childElements
-        .map((childEle) => childEle.position.dx.toStringAsFixed(4))
-        .toSet()
-        .toList();
-    subElementsOrderDx.sort();
-    List<List<FlowElement>> columns =
-        List.generate(subElementsOrderDx.length, (_) => []);
-    for (int i = 0; i < subElementsOrderDx.length; i++) {
-      for (int j = 0; j < childElements.length; j++) {
-        if (childElements[j].position.dx.toStringAsFixed(4) ==
-            subElementsOrderDx[i]) {
-          columns[i].add(childElements[j]);
+    if (groupElement != null) {
+      for (var columnElementIds in groupElement.colsElementIds) {
+        List<FlowElement> columnElements = [];
+        for (var elementId in columnElementIds) {
+          if (elementId != "") {
+            FlowElement element = findElementById(elementId)!;
+            columnElements.add(element);
+          }
         }
+        groupColumnLayoutData.add(columnElements);
       }
-      // 根据dx的值从小到大排序
-      columns[i].sort((a, b) => a.position.dy.compareTo(b.position.dy));
-      groupColumnLayoutData.add(columns[i]);
     }
     return groupColumnLayoutData;
   }
@@ -1204,6 +1214,7 @@ class Dashboard extends ChangeNotifier {
     FlowElement? sourceElement = findSrcElementByDestElement(removedElement);
     double decreaseHeight = 0;
     double decreaseWidth = 0;
+    final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
     FlowElement? removedEleNextEle = removedElement.next.isNotEmpty
         ? findElementById(removedElement.next.first.destElementId)
         : null;
@@ -1211,6 +1222,24 @@ class Dashboard extends ChangeNotifier {
         .where((ele) => ele.parentId == removedElement.parentId)
         .toList();
     final groupElement = findElementById(removedElement.parentId)!;
+    final removedElementColumnIndex = groupElement.colsElementIds
+        .indexWhere((elementIds) => elementIds.contains(removedElementId));
+    final removedElementRowIndex = groupElement.rowsElementIds
+        .indexWhere((elementIds) => elementIds.contains(removedElementId));
+    final lastColsLength = groupElement.colsElementIds.length;
+    final lastRowsLength = groupElement.rowsElementIds.length;
+    if (removedElementColumnIndex != -1 && removedElementRowIndex != -1) {
+      groupElement.colsElementIds[removedElementColumnIndex]
+          [removedElementRowIndex] = "";
+      groupElement.colsElementIds =
+          cleanLastEmptyItems(groupElement.colsElementIds);
+      groupElement.rowsElementIds[removedElementRowIndex]
+          [removedElementColumnIndex] = "";
+      groupElement.rowsElementIds =
+          cleanLastEmptyItems(groupElement.rowsElementIds);
+    }
+    final colsLength = groupElement.colsElementIds.length;
+    final rowsLength = groupElement.rowsElementIds.length;
     if (sourceElement == null) {
       //删除的是组内的第一行的节点
       if (removedEleNextEle != null) {
@@ -1224,16 +1253,14 @@ class Dashboard extends ChangeNotifier {
       } else {
         //删除的节点下面没有其他节点，删除后组直接少一列
         if (lastChildElements.length > 1) {
-          final currentGroupElementSpacing = groupElementSpacing * zoomFactor;
           decreaseWidth =
               removedElement.size.width + currentGroupElementSpacing;
         }
       }
     }
-    final lastGroupRowLayoutData =
-        getGroupRowLayoutData(lastChildElements.toList());
     final lastGroupColumnLayoutData =
-        getGroupColumnLayoutData(lastChildElements.toList());
+        getGroupColumnLayoutData(removedElement.parentId);
+
     // 移除当前节点
     elements.removeWhere((element) {
       if (element.id == removedElementId) {
@@ -1249,6 +1276,7 @@ class Dashboard extends ChangeNotifier {
         return removedElementId.contains(handlerParams.destElementId);
       });
     }
+
     List<FlowElement> bottomOfRemovedElements = [];
     for (List<FlowElement> columnElements in lastGroupColumnLayoutData) {
       if (columnElements.first.position.dx == removedElement.position.dx) {
@@ -1265,9 +1293,11 @@ class Dashboard extends ChangeNotifier {
     List<FlowElement> childElements = elements
         .where((ele) => ele.parentId == removedElement.parentId)
         .toList();
-    final groupRowLayoutData = getGroupRowLayoutData(childElements.toList());
-    final diffElementRows =
-        groupRowLayoutData.length - lastGroupRowLayoutData.length;
+    final diffElementRows = rowsLength - lastRowsLength;
+    final diffElementCols = colsLength - lastColsLength;
+    if (diffElementCols < 0) {
+      decreaseWidth = removedElement.size.width + currentGroupElementSpacing;
+    }
     if (sourceElement != null) {
       final sourceElementBottomHandlerPos =
           sourceElement.getHandlerPosition(Alignment.bottomCenter);
@@ -1576,5 +1606,42 @@ class Dashboard extends ChangeNotifier {
       ..addAll(loadedElements);
     updateAllGroupsLayoutData();
     setFullView();
+  }
+
+  // 矩阵转置
+  List<List<T>> transpose<T>(List<List<T>> matrix) {
+    if (matrix.isEmpty || matrix[0].isEmpty) return [];
+
+    int rowCount = matrix.length;
+    int colCount = matrix[0].length;
+
+    // 创建一个新的二维数组
+    List<List<T>> result = List.generate(
+      colCount,
+      (_) => List<T>.filled(rowCount, matrix[0][0], growable: true),
+    );
+
+    // 填充转置后的数组
+    for (int i = 0; i < rowCount; i++) {
+      for (int j = 0; j < colCount; j++) {
+        result[j][i] = matrix[i][j];
+      }
+    }
+
+    return result;
+  }
+
+  List<List<String>> cleanLastEmptyItems(List<List<String>> matrix) {
+    if (matrix.isEmpty) return matrix;
+
+    // 如果所有子数组的最后一项都为空字符串，则移除最后一项
+    if (matrix.every((row) => row.isNotEmpty && row.last.isEmpty)) {
+      return matrix.map((row) => row.sublist(0, row.length - 1)).toList();
+    }
+
+    // 否则，过滤掉空子数组并返回原始数组
+    return matrix
+        .where((row) => row.where((item) => item != "").isNotEmpty)
+        .toList();
   }
 }

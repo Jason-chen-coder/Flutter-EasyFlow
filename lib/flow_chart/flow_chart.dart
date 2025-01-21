@@ -299,13 +299,13 @@ class _FlowChartState extends State<FlowChart> {
                 ElementWidget(
                   key: UniqueKey(),
                   dashboard: widget.dashboard,
-                  element: widget.dashboard.elements.elementAt(i),
+                  element: widget.dashboard.elements[i],
                   onElementPressed: (context, position) {
                     if (widget.onElementPressed != null) {
                       widget.onElementPressed!(
                         context,
                         position,
-                        widget.dashboard.elements.elementAt(i),
+                        widget.dashboard.elements[i],
                       );
                     }
                   },
@@ -322,7 +322,7 @@ class _FlowChartState extends State<FlowChart> {
                       widget.onGoupPlusPressed!(
                         context,
                         position,
-                        widget.dashboard.elements.elementAt(i),
+                        widget.dashboard.elements[i],
                       );
                     }
                   },
@@ -332,14 +332,14 @@ class _FlowChartState extends State<FlowChart> {
                       : (context, position) => widget.onElementSecondaryTapped!(
                             context,
                             position,
-                            widget.dashboard.elements.elementAt(i),
+                            widget.dashboard.elements[i],
                           ),
                   onElementLongPressed: widget.onElementLongPressed == null
                       ? null
                       : (context, position) => widget.onElementLongPressed!(
                             context,
                             position,
-                            widget.dashboard.elements.elementAt(i),
+                            widget.dashboard.elements[i],
                           ),
                   onElementSecondaryLongTapped:
                       widget.onElementSecondaryLongTapped == null
@@ -348,7 +348,7 @@ class _FlowChartState extends State<FlowChart> {
                               widget.onElementSecondaryLongTapped!(
                                 context,
                                 position,
-                                widget.dashboard.elements.elementAt(i),
+                                widget.dashboard.elements[i],
                               ),
                   onHandlerPressed: widget.onHandlerPressed == null
                       ? null
