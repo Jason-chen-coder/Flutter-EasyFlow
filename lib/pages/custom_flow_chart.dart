@@ -1,15 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_code_editor/flutter_code_editor.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:highlight/languages/json.dart' as jsonCode;
 import 'package:star_menu/star_menu.dart';
 
 import '../flow_chart/dashboard.dart';
 import '../flow_chart/elements/flow_element.dart';
 import '../flow_chart/flow_chart.dart';
-import 'code_editor_theme.dart';
+import '../widgets/json_editor.dart';
 
 class CustomFlowChart extends StatefulWidget {
   static String name = 'CustomFlowChart';
@@ -24,9 +22,13 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   final segmentedTension = ValueNotifier<double>(1);
   late final Dashboard dashboard;
   late bool allElementsDraggable;
+  String jsonData = "{}";
   int selectedIndex = 0;
   Offset currentPosition = Offset(0, 0);
   Timer? _debounceTimer;
+  final GlobalKey<JsonEditorState> _jsonEditorKey =
+      GlobalKey<JsonEditorState>();
+
   _CustomFlowChartState() {
     dashboard = Dashboard();
     allElementsDraggable = dashboard.allElementsDraggable;
@@ -37,6 +39,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
     super.initState();
     Timer(Duration(seconds: 0), () {
       _initStartElements();
+      setState(() {
+        jsonData = dashboard.toJson();
+      });
     });
     dashboard.addListener(_onDashboardJsonChanged);
   }
@@ -44,7 +49,10 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   void _onDashboardJsonChanged() {
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      setState(() {});
+      setState(() {
+        jsonData = dashboard.toJson();
+        _jsonEditorKey.currentState?.updateJson(jsonData);
+      });
     });
   }
 
@@ -122,33 +130,26 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
             child: Row(
               children: [
                 Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  constraints: BoxConstraints(
-                    minWidth: 450,
-                    maxWidth: 480,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(0xffffffff),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CodeTheme(
-                        data: CodeThemeData(styles: editorDefaultTheme),
-                        child: SingleChildScrollView(
-                            child: CodeField(
-                          enabled: false,
-                          wrap: true,
-                          controller: CodeController(
-                            text: dashboard.toPrettyJsonString,
-                            language: jsonCode.json,
-                          ),
-                          minLines: 1,
-                        )),
-                      );
-                    },
-                  ),
-                ),
+                    width: 480,
+                    height: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Color(0xffffffff),
+                    ),
+                    child: Container(
+                      width: 480,
+                      color: Colors.white,
+                      child: JsonEditor(
+                        key: _jsonEditorKey,
+                        onChanged: (value) {
+                          // Do something
+                        },
+                        hideEditorsMenuButton: true,
+                        enableMoreOptions: false,
+                        enableValueEdit: false,
+                        enableKeyEdit: false,
+                        json: jsonData,
+                      ),
+                    )),
                 Expanded(
                   child: Stack(
                     children: [
