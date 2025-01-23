@@ -1,9 +1,8 @@
 // ignore_for_file: public_member_api_docs
 
+import 'package:flutter/material.dart';
 import 'package:flutter_easy_flow/pages/custom_flow_chart.dart';
 import 'package:flutter_easy_flow/pages/default_flow_chart.dart';
-
-import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
     DefaultFlowChart(),
     CustomFlowChart(),
   ];
-  final List<String> _titles = ['Default Flow', 'Custom Flow'];
+  final List<String> _titles = ['Default Flow', 'Flutter-EasyFlow'];
   int _currentIndex = 1;
   void _onItemTapped(int index) {
     setState(() {
@@ -62,45 +61,45 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            Container(
-              height: 80, // 自定义高度
-              color: Colors.blue,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Menu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: Text(_titles[0]),
-              selected: _currentIndex == 0,
-              onTap: () {
-                _onItemTapped(0);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: Text(_titles[1]),
-              selected: _currentIndex == 1,
-              onTap: () {
-                _onItemTapped(1);
-                Navigator.pop(context);
-              },
-            )
-          ],
-        ),
-      ),
+      // drawer: Drawer(
+      //   child: ListView(
+      //     padding: EdgeInsets.zero,
+      //     children: <Widget>[
+      //       Container(
+      //         height: 80, // 自定义高度
+      //         color: Colors.blue,
+      //         child: Padding(
+      //           padding: const EdgeInsets.all(16.0),
+      //           child: Text(
+      //             'Menu',
+      //             style: TextStyle(
+      //               color: Colors.white,
+      //               fontSize: 24,
+      //             ),
+      //           ),
+      //         ),
+      //       ),
+      //       ListTile(
+      //         leading: const Icon(Icons.home),
+      //         title: Text(_titles[0]),
+      //         selected: _currentIndex == 0,
+      //         onTap: () {
+      //           _onItemTapped(0);
+      //           Navigator.pop(context);
+      //         },
+      //       ),
+      //       ListTile(
+      //         leading: const Icon(Icons.settings),
+      //         title: Text(_titles[1]),
+      //         selected: _currentIndex == 1,
+      //         onTap: () {
+      //           _onItemTapped(1);
+      //           Navigator.pop(context);
+      //         },
+      //       )
+      //     ],
+      //   ),
+      // ),
       body: _pages[_currentIndex],
     );
   }

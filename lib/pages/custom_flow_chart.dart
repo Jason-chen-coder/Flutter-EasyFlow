@@ -23,8 +23,6 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
   late final Dashboard dashboard;
   late bool allElementsDraggable;
   String jsonData = "{}";
-  int selectedIndex = 0;
-  Offset currentPosition = Offset(0, 0);
   Timer? _debounceTimer;
   final GlobalKey<JsonEditorState> _jsonEditorKey =
       GlobalKey<JsonEditorState>();
@@ -595,9 +593,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
 
   void _addGroupNode(Offset position, FlowElement sourceElement) {
     final groupElement = FlowElement(
-      size: defaultGoupElementSize,
+      size: defaultGroupElementSize,
       position: dashboard.getNextElementPosition(sourceElement,
-          targetElementSize: defaultGoupElementSize),
+          targetElementSize: defaultGroupElementSize),
       text: 'Group',
       taskType: TaskType.group,
       kind: ElementKind.group,

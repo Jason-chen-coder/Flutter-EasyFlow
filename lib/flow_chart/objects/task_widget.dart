@@ -140,7 +140,7 @@ class TaskWidget extends StatelessWidget {
                   element.taskType != TaskType.end)
               ? Positioned(
                   top: -10 * element.zoom,
-                  right: 10 * element.zoom,
+                  right: -5 * element.zoom,
                   child: Row(
                     children: [
                       // Container(

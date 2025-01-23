@@ -11,16 +11,13 @@ Here are some of the key features of `flutter_easy_flow` in action:
 - **Real-time Data Rendering**: Automatically render flow diagrams based on real-time data.
 - **Real-time Data Viewing**: View the underlying data of flow diagrams in real-time.
 
-<!-- ![Screen Recording](screen_recording.gif) -->
+![Screen Recording](screen_recording.gif)
 
 ## 🛠️ Installation
 
 To get started with `flutter_easy_flow`, follow these steps:
 
 1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/flutter_easy_flow.git
-    ```
 2. Navigate to the project directory:
     ```bash
     cd flutter_easy_flow
@@ -42,6 +39,17 @@ Welcome contributions from the community. If you would like to contribute, pleas
 2. Create a new branch for your feature or bugfix.
 3. Commit your changes and push the branch to your fork.
 4. Create a pull request with a detailed description of your changes.
+
+### 📝 TODO
+
+Here are some upcoming features that are planned for `flutter_easy_flow`:
+
+1. **Collapsible Group Nodes**: Add support for collapsing and expanding group nodes to manage complex diagrams more efficiently.
+2. **Local Data Persistence**: Save canvas data locally and support data restoration to continue work seamlessly.
+3. **Animated JSON Data Panel**: Introduce an animated panel on the left side to expand or collapse JSON data for better data management.
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/Jason-chen-coder/Flutter-EasyFlow.svg?)](https://starchart.cc/Jason-chen-coder/Flutter-EasyFlow)
 
 ### 📄 License
 

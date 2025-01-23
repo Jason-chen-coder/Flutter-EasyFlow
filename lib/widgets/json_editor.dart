@@ -18,11 +18,19 @@ const _textSpacer = SizedBox(width: 5);
 const _newKey = "new_key_added";
 const _downArrow = SizedBox(
   width: _expandIconWidth,
-  child: Icon(Icons.keyboard_arrow_down_outlined, size: 22),
+  child: Icon(
+    Icons.keyboard_arrow_down_outlined,
+    size: 22,
+    color: Color(0xff828182),
+  ),
 );
 const _rightArrow = SizedBox(
   width: _expandIconWidth,
-  child: Icon(Icons.keyboard_arrow_right_outlined, size: 22),
+  child: Icon(
+    Icons.keyboard_arrow_right_outlined,
+    size: 22,
+    color: Color(0xff828182),
+  ),
 );
 const _newDataValue = {
   _OptionItems.string: "",
@@ -58,22 +66,23 @@ class JsonEditor extends StatefulWidget {
   ///
   /// [editors] is the supported list of editors. First element will be
   /// used as default editor. Defaults to `[Editors.tree, Editors.text]`.
-  const JsonEditor({
-    super.key,
-    required this.json,
-    required this.onChanged,
-    this.duration = const Duration(milliseconds: 500),
-    this.enableMoreOptions = true,
-    this.enableKeyEdit = true,
-    this.enableValueEdit = true,
-    this.editors = const [Editors.tree, Editors.text],
-    this.themeColor,
-    this.actions = const [],
-    this.enableHorizontalScroll = false,
-    this.searchDuration = const Duration(milliseconds: 500),
-    this.hideEditorsMenuButton = false,
-    this.expandedObjects = const [],
-  }) : assert(editors.length > 0, "editors list cannot be empty");
+  const JsonEditor(
+      {super.key,
+      required this.json,
+      required this.onChanged,
+      this.duration = const Duration(milliseconds: 500),
+      this.enableMoreOptions = true,
+      this.enableKeyEdit = true,
+      this.enableValueEdit = true,
+      this.editors = const [Editors.tree, Editors.text],
+      this.themeColor,
+      this.actions = const [],
+      this.enableHorizontalScroll = false,
+      this.searchDuration = const Duration(milliseconds: 500),
+      this.hideEditorsMenuButton = false,
+      this.expandedObjects = const [],
+      this.firstKey = "Object"})
+      : assert(editors.length > 0, "editors list cannot be empty");
 
   /// JSON string to be edited.
   final String json;
@@ -91,6 +100,7 @@ class JsonEditor extends StatefulWidget {
   final bool enableKeyEdit;
 
   /// Enables editing of values. Defaults to `true`.
+
   final bool enableValueEdit;
 
   /// Theme color for the editor. Changes the border color and header color.
@@ -145,6 +155,7 @@ class JsonEditor extends StatefulWidget {
   /// ```
   final List expandedObjects;
 
+  final String firstKey;
   @override
   State<JsonEditor> createState() => JsonEditorState();
 }
@@ -165,7 +176,7 @@ class JsonEditorState extends State<JsonEditor> {
   int? _focusedKey;
   int? _results;
   late final _expandedObjects = <String, bool>{
-    ["object"].toString(): true,
+    [widget.firstKey].toString(): true,
     if (widget.expandedObjects.isNotEmpty) ...getExpandedParents(),
   };
 
@@ -173,13 +184,13 @@ class JsonEditorState extends State<JsonEditor> {
     final map = <String, bool>{};
     for (var key in widget.expandedObjects) {
       if (key is List) {
-        final newExpandList = ["object", ...key];
+        final newExpandList = [widget.firstKey, ...key];
         for (int i = newExpandList.length - 1; i > 0; i--) {
           map[newExpandList.toString()] = true;
           newExpandList.removeLast();
         }
       } else {
-        map[["object", key].toString()] = true;
+        map[[widget.firstKey, key].toString()] = true;
       }
     }
     return map;
@@ -270,7 +281,7 @@ class JsonEditorState extends State<JsonEditor> {
         });
       } else {
         _results = 0;
-        findMatchingKeys(_data, text.toLowerCase(), ["object"]);
+        findMatchingKeys(_data, text.toLowerCase(), [widget.firstKey]);
         setState(() {});
         if (_matchedKeys.isNotEmpty) {
           _focusedKey = 0;
@@ -316,7 +327,7 @@ class JsonEditorState extends State<JsonEditor> {
       }
     }
 
-    calculateOffset(_data, ["object"], toFind);
+    calculateOffset(_data, [widget.firstKey], toFind);
     return offset;
   }
 
@@ -409,7 +420,6 @@ class JsonEditorState extends State<JsonEditor> {
 
   @override
   Widget build(BuildContext context) {
-    print("======+>Json:${widget.json}");
     return DecoratedBox(
       decoration: BoxDecoration(
         border: Border.all(
@@ -423,24 +433,58 @@ class JsonEditorState extends State<JsonEditor> {
           children: [
             if (_editor == Editors.tree)
               Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  physics: const ClampingScrollPhysics(),
-                  child: wrapWithHorizontolScroll(
-                    _Holder(
-                      key: UniqueKey(),
-                      data: _data,
-                      keyName: "object",
-                      paddingLeft: 0,
-                      onChanged: callOnChanged,
-                      parentObject: {"object": _data},
-                      setState: setState,
-                      matchedKeys: _matchedKeys,
-                      allParents: const ["object"],
-                      expandedObjects: _expandedObjects,
-                      lineNumber: 1,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 行号列
+                    SizedBox(
+                      width: 20,
+                      child: SingleChildScrollView(
+                        controller: ScrollController(), // 垂直同步滚动用
+                        physics: const ClampingScrollPhysics(),
+                        child: Column(
+                          children: List.generate(
+                            _getMaxLineNumber(_data),
+                            (index) => SizedBox(
+                              height: _rowHeight,
+                              child: Center(
+                                child: Text(
+                                  "${index + 1}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff2c6b83),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    // 内容区域
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: _scrollController,
+                        physics: const ClampingScrollPhysics(),
+                        child: wrapWithHorizontolScroll(
+                          _Holder(
+                            key: UniqueKey(),
+                            data: _data,
+                            keyName: widget.firstKey,
+                            paddingLeft: 0,
+                            onChanged: callOnChanged,
+                            parentObject: {"${widget.firstKey}": _data},
+                            setState: setState,
+                            matchedKeys: _matchedKeys,
+                            allParents: [widget.firstKey],
+                            expandedObjects: _expandedObjects,
+                            showLineNumber: false, // 新增参数，不显示行号
+                            lineNumber: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (_editor == Editors.text)
@@ -467,6 +511,39 @@ class JsonEditorState extends State<JsonEditor> {
       ),
     );
   }
+
+  int _getMaxLineNumber(dynamic data) {
+    int count = 1;
+
+    void calculateLines(dynamic d, List<dynamic> parents) {
+      if (d is Map) {
+        for (var entry in d.entries) {
+          count++;
+          final newParents = [...parents, entry.key];
+          if (entry.value is Map || entry.value is List) {
+            // 检查当前路径是否展开
+            if (_expandedObjects[newParents.toString()] == true) {
+              calculateLines(entry.value, newParents);
+            }
+          }
+        }
+      } else if (d is List) {
+        for (int i = 0; i < d.length; i++) {
+          count++;
+          final newParents = [...parents, i];
+          if (d[i] is Map || d[i] is List) {
+            // 检查当前路径是否展开
+            if (_expandedObjects[newParents.toString()] == true) {
+              calculateLines(d[i], newParents);
+            }
+          }
+        }
+      }
+    }
+
+    calculateLines(data, [widget.firstKey]);
+    return count;
+  }
 }
 
 class _Holder extends StatefulWidget {
@@ -481,6 +558,7 @@ class _Holder extends StatefulWidget {
     required this.matchedKeys,
     required this.allParents,
     required this.expandedObjects,
+    this.showLineNumber = true, // 新增参数
     required this.lineNumber,
   });
 
@@ -493,6 +571,7 @@ class _Holder extends StatefulWidget {
   final Map<String, bool> matchedKeys;
   final List allParents;
   final Map<String, bool> expandedObjects;
+  final bool showLineNumber; // 新增参数
   final int lineNumber;
 
   @override
@@ -565,30 +644,21 @@ class _HolderState extends State<_Holder> {
             height: _rowHeight,
             child: Row(
               children: [
-                Container(
-                  width: 20,
-                  child: Center(
-                    child: Text(
-                      "${widget.lineNumber}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ),
                 if (_enableMoreOptions) _Options<Map>(onSelected),
                 SizedBox(width: widget.paddingLeft),
                 InkWell(
-                  hoverColor: Colors.transparent,
-                  splashColor: Colors.transparent,
-                  onTap: _toggleState,
-                  child: Padding(
-                    padding: EdgeInsets.all(5),
-                    child: isExpanded ? _downArrow : _rightArrow,
-                  ),
-                ),
-                const SizedBox(width: _expandIconWidth),
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    onTap: _toggleState,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: isExpanded ? _downArrow : _rightArrow,
+                        ),
+                        const SizedBox(width: _expandIconWidth),
+                      ],
+                    )),
                 if (_enableKeyEdit && widget.parentObject is! List) ...[
                   _ReplaceTextWithField(
                     key: Key(widget.keyName.toString()),
@@ -609,11 +679,26 @@ class _HolderState extends State<_Holder> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         wrapWithColoredBox(
-                          Text("${widget.keyName}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xff247373),
-                              )),
+                          Row(
+                            children: [
+                              Text("${widget.keyName}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff247373),
+                                  )),
+                              Text(": ",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff45474e),
+                                  )),
+                              if (!isExpanded)
+                                Text("{...}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xff124791),
+                                    )),
+                            ],
+                          ),
                           "${widget.keyName}",
                         ),
                       ],
@@ -667,30 +752,21 @@ class _HolderState extends State<_Holder> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 20,
-                  child: Center(
-                    child: Text(
-                      "${widget.lineNumber}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                ),
                 if (_enableMoreOptions) _Options<List>(onSelected),
                 SizedBox(width: widget.paddingLeft),
                 InkWell(
-                  hoverColor: Colors.transparent,
-                  splashColor: Colors.transparent,
-                  onTap: _toggleState,
-                  child: Padding(
-                    padding: EdgeInsets.all(5),
-                    child: isExpanded ? _downArrow : _rightArrow,
-                  ),
-                ),
-                const SizedBox(width: _expandIconWidth),
+                    hoverColor: Colors.transparent,
+                    splashColor: Colors.transparent,
+                    onTap: _toggleState,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: isExpanded ? _downArrow : _rightArrow,
+                        ),
+                        const SizedBox(width: _expandIconWidth),
+                      ],
+                    )),
                 if (_enableKeyEdit && widget.parentObject is! List) ...[
                   _ReplaceTextWithField(
                     key: Key(widget.keyName.toString()),
@@ -711,11 +787,27 @@ class _HolderState extends State<_Holder> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         wrapWithColoredBox(
-                          Text("${widget.keyName}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Color(0xff247373),
-                              )),
+                          Row(
+                            children: [
+                              Text("${widget.keyName}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff247373),
+                                  )),
+                              Text(": ",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Color(0xff45474e),
+                                  )),
+                              if (!isExpanded)
+                                Text(
+                                    "${listWidget.length > 0 ? '[...]' : '{...}'}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xff124791),
+                                    )),
+                            ],
+                          ),
                           "${widget.keyName}",
                         ),
                       ],
@@ -738,18 +830,6 @@ class _HolderState extends State<_Holder> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 20,
-              child: Center(
-                child: Text(
-                  "${widget.lineNumber}",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                ),
-              ),
-            ),
             if (_enableMoreOptions) _Options<String>(onSelected),
             SizedBox(
               width: widget.paddingLeft + (_expandIconWidth * 2),
@@ -768,7 +848,7 @@ class _HolderState extends State<_Holder> {
                     isHighlighted:
                         widget.matchedKeys["${widget.keyName}"] == true,
                   ),
-                  const Text(' :', style: _textStyle),
+                  const Text(':', style: _textStyle),
                 ] else
                   Row(
                     mainAxisSize: MainAxisSize.min,
@@ -781,8 +861,7 @@ class _HolderState extends State<_Holder> {
                             )),
                         "${widget.keyName}",
                       ),
-                      _textSpacer,
-                      const Text(" :", style: _textStyle),
+                      const Text(":", style: _textStyle),
                     ],
                   ),
                 _textSpacer,

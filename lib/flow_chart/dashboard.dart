@@ -15,11 +15,26 @@ import './flow_chart_library.dart';
 import './ui/draw_arrow.dart';
 import './ui/segment_handler.dart';
 
+/// 普通节点默认尺寸
+const Size defaultElementSize = Size(250, 60);
+
+/// 组节点默认尺寸
+const Size defaultGroupElementSize = Size(320, 80);
+
+/// 节点的padding
+const double elementPadding = 10;
+
+/// 默认的锚点大小
+const double defaultHandlerSize = 20;
+
 /// 组节点内子节点的间距
-const double groupElementSpacing = 20;
+const double groupElementSpacing = 10;
+
+/// plus节点默认大小
+const double defaultPlusSize = 26;
 
 /// 节点间默认距离
-const int defaultNodeDistance = 50;
+const int defaultNodeDistance = 35;
 
 class GroupLayoutData {
   final String id;
@@ -281,13 +296,10 @@ class Dashboard extends ChangeNotifier {
       elements
           .where((element) => element.taskType == TaskType.group)
           .map((groupElement) {
-        final childElements = elements
-            .where((element) => element.parentId == groupElement.id)
-            .toList();
         final groupLayoutData = GroupLayoutData(
           id: groupElement.id,
           columnsLayoutData: getGroupColumnLayoutData(groupElement.id),
-          rowsLayoutData: getGroupRowLayoutData(childElements, groupElement.id),
+          rowsLayoutData: getGroupRowLayoutData(groupElement.id),
         );
         _allGroupsLayoutData[groupElement.id] = groupLayoutData;
       }).toList();
@@ -749,8 +761,7 @@ class Dashboard extends ChangeNotifier {
   }
 
 // 获取行布局数据
-  List<List<FlowElement>> getGroupRowLayoutData(
-      List<FlowElement> childElements, String groupId) {
+  List<List<FlowElement>> getGroupRowLayoutData(String groupId) {
     FlowElement? groupElement = findElementById(groupId);
     List<List<FlowElement>> groupRowLayoutData = [];
     if (groupElement != null) {
@@ -1191,6 +1202,7 @@ class Dashboard extends ChangeNotifier {
     // 删除组节点需要删除所有其子节点
     if (removedElement.taskType == TaskType.group) {
       elements.removeWhere((element) => element.parentId == removedElement.id);
+      allGroupsLayoutData.remove(removedElement.id);
     }
     // 移除当前节点所有的连接
     for (final e in elements) {
@@ -1222,6 +1234,8 @@ class Dashboard extends ChangeNotifier {
         .where((ele) => ele.parentId == removedElement.parentId)
         .toList();
     final groupElement = findElementById(removedElement.parentId)!;
+    final lastGroupColumnLayoutData =
+        getGroupColumnLayoutData(removedElement.parentId);
     final removedElementColumnIndex = groupElement.colsElementIds
         .indexWhere((elementIds) => elementIds.contains(removedElementId));
     final removedElementRowIndex = groupElement.rowsElementIds
@@ -1229,14 +1243,17 @@ class Dashboard extends ChangeNotifier {
     final lastColsLength = groupElement.colsElementIds.length;
     final lastRowsLength = groupElement.rowsElementIds.length;
     if (removedElementColumnIndex != -1 && removedElementRowIndex != -1) {
-      groupElement.colsElementIds[removedElementColumnIndex]
-          [removedElementRowIndex] = "";
+      if (removedEleNextEle != null) {
+        groupElement.colsElementIds[removedElementColumnIndex]
+            .removeAt(removedElementRowIndex);
+        groupElement.colsElementIds[removedElementColumnIndex].add("");
+      } else {
+        groupElement.colsElementIds[removedElementColumnIndex]
+            [removedElementRowIndex] = "";
+      }
       groupElement.colsElementIds =
           cleanLastEmptyItems(groupElement.colsElementIds);
-      groupElement.rowsElementIds[removedElementRowIndex]
-          [removedElementColumnIndex] = "";
-      groupElement.rowsElementIds =
-          cleanLastEmptyItems(groupElement.rowsElementIds);
+      groupElement.rowsElementIds = transpose(groupElement.colsElementIds);
     }
     final colsLength = groupElement.colsElementIds.length;
     final rowsLength = groupElement.rowsElementIds.length;
@@ -1256,25 +1273,18 @@ class Dashboard extends ChangeNotifier {
           decreaseWidth =
               removedElement.size.width + currentGroupElementSpacing;
         }
+        if (rowsLength == 0) {
+          decreaseHeight =
+              (defaultNodeDistance + defaultHandlerSize) * zoomFactor;
+        }
       }
-    }
-    final lastGroupColumnLayoutData =
-        getGroupColumnLayoutData(removedElement.parentId);
-
-    // 移除当前节点
-    elements.removeWhere((element) {
-      if (element.id == removedElementId) {
-        return true;
-      } else {
-        return false;
-      }
-    });
-
-    // 移除当前节点所有的连接
-    for (final e in elements) {
-      e.next.removeWhere((handlerParams) {
-        return removedElementId.contains(handlerParams.destElementId);
-      });
+    } else {
+      final sourceElementBottomHandlerPos =
+          sourceElement.getHandlerPosition(Alignment.bottomCenter);
+      final removedEleBottomHandlerPos =
+          removedElement.getHandlerPosition(Alignment.bottomCenter);
+      decreaseHeight =
+          removedEleBottomHandlerPos.dy - sourceElementBottomHandlerPos.dy;
     }
 
     List<FlowElement> bottomOfRemovedElements = [];
@@ -1287,35 +1297,42 @@ class Dashboard extends ChangeNotifier {
         break;
       }
     }
+
+    /// 移除当前节点
+    elements.removeWhere((element) {
+      if (element.id == removedElementId) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    /// 移除当前节点所有的连接
+    for (final e in elements) {
+      e.next.removeWhere((handlerParams) {
+        return removedElementId.contains(handlerParams.destElementId);
+      });
+    }
+
+    /// 移除节点后，更新组内其他节点位置和连线
     updateLayOutAfterDelElementInGroup(
         removedElement, sourceElement, bottomOfRemovedElements, decreaseHeight);
 
+    /// 更新组节点大小和位置
     List<FlowElement> childElements = elements
         .where((ele) => ele.parentId == removedElement.parentId)
         .toList();
-    final diffElementRows = rowsLength - lastRowsLength;
+    int diffElementRows = rowsLength - lastRowsLength;
     final diffElementCols = colsLength - lastColsLength;
-    if (diffElementCols < 0) {
+    if (diffElementCols < 0 && colsLength > 0) {
       decreaseWidth = removedElement.size.width + currentGroupElementSpacing;
     }
-    if (sourceElement != null) {
-      final sourceElementBottomHandlerPos =
-          sourceElement.getHandlerPosition(Alignment.bottomCenter);
-      final removedEleBottomHandlerPos =
-          removedElement.getHandlerPosition(Alignment.bottomCenter);
-      decreaseHeight =
-          removedEleBottomHandlerPos.dy - sourceElementBottomHandlerPos.dy;
-    }
 
-    (defaultNodeDistance * 2 + defaultHandlerSize * 2) * zoomFactor;
-
-    /// 判断是否需要更新组节点的大小
-    /// 关于高度：如果删除的节点导致行数变少了，需要更新组节点的高度
     final newGroupElementSize = Size(groupElement.size.width - decreaseWidth,
         groupElement.size.height + decreaseHeight * diffElementRows);
 
-    ///关于宽度：如果删除的节点导致列数变少了，需要更新组节点的宽度
     groupElement.size = newGroupElementSize;
+
     if (decreaseWidth != 0) {
       //  更新组节点位置
       groupElement.position = Offset(
@@ -1330,7 +1347,8 @@ class Dashboard extends ChangeNotifier {
             element.position.dy));
       }
     }
-    // 如果行数减少了则追加调整组外后续节点的垂直位置
+
+    /// 如果行数减少了则追加调整组外后续节点的垂直位置
     if (diffElementRows < 0) {
       for (var element in elements) {
         if (element.position.dy > removedElement.position.dy - decreaseHeight &&
@@ -1633,15 +1651,18 @@ class Dashboard extends ChangeNotifier {
 
   List<List<String>> cleanLastEmptyItems(List<List<String>> matrix) {
     if (matrix.isEmpty) return matrix;
-
     // 如果所有子数组的最后一项都为空字符串，则移除最后一项
     if (matrix.every((row) => row.isNotEmpty && row.last.isEmpty)) {
-      return matrix.map((row) => row.sublist(0, row.length - 1)).toList();
+      return matrix
+          .map((row) => row.sublist(0, row.length - 1))
+          .where((row) => row.isNotEmpty)
+          .toList();
     }
 
     // 否则，过滤掉空子数组并返回原始数组
     return matrix
         .where((row) => row.where((item) => item != "").isNotEmpty)
+        .where((row) => row.isNotEmpty)
         .toList();
   }
 }

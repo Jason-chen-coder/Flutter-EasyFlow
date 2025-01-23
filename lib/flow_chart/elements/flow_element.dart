@@ -8,11 +8,6 @@ import 'package:uuid/uuid.dart';
 import '../dashboard.dart';
 import 'connection_params.dart';
 
-const Size defaultElementSize = Size(310, 60);
-const Size defaultGoupElementSize = Size(400, 80);
-const Size defaultPlusElementSize = Size(36, 36);
-const double elementPadding = 10;
-const double defaultHandlerSize = 20;
 
 enum TaskType { none, trigger, delay, timeout, grab, end, plus, group }
 
