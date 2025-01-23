@@ -48,6 +48,25 @@ Here are some upcoming features that are planned for `flutter_easy_flow`:
 2. **Local Data Persistence**: Save canvas data locally and support data restoration to continue work seamlessly.
 3. **Animated JSON Data Panel**: Introduce an animated panel on the left side to expand or collapse JSON data for better data management.
 
+## 🌐 GitHub Pages Deployment
+
+To deploy `flutter_easy_flow` to GitHub Pages, follow these steps:
+
+1. Build the web version of the app with the correct base href:
+    ```bash
+    flutter build web --base-href=/Flutter-EasyFlow/
+    ```
+2. Copy the contents of the `build/web/` directory to the `/docs` directory:
+    ```bash
+    cp -r build/web/* docs/
+    ```
+3. Commit your changes and push them to the repository:
+    ```bash
+    git add docs/
+    git commit -m "Deploy to GitHub Pages"
+    git push origin main
+    ```
+    
 ## Stargazers over time
 [![Stargazers over time](https://starchart.cc/Jason-chen-coder/Flutter-EasyFlow.svg?)](https://starchart.cc/Jason-chen-coder/Flutter-EasyFlow)
 
