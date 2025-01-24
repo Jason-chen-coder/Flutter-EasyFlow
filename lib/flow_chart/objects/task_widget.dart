@@ -11,6 +11,7 @@ class TaskWidget extends StatelessWidget {
     required this.dashboard,
     required this.element,
     required this.onElementOptionsPressed,
+    required this.onElementDeleted,
     super.key,
   });
   final Dashboard dashboard;
@@ -19,6 +20,8 @@ class TaskWidget extends StatelessWidget {
   final FlowElement element;
 
   final void Function(FlowElement element)? onElementOptionsPressed;
+
+  final void Function(FlowElement element)? onElementDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -159,11 +162,16 @@ class TaskWidget extends StatelessWidget {
                       ),
                       InkWell(
                           onTap: () {
-                            if (element.parentId == "") {
-                              dashboard.removeElementById(element.id);
-                            } else {
-                              dashboard
-                                  .removeElementInGroupByElementId(element.id);
+                            try {
+                              if (element.parentId == "") {
+                                dashboard.removeElementById(element.id);
+                              } else {
+                                dashboard.removeElementInGroupByElementId(
+                                    element.id);
+                              }
+                              onElementDeleted!(element);
+                            } catch (e) {
+                              print(e);
                             }
                           },
                           child: Container(

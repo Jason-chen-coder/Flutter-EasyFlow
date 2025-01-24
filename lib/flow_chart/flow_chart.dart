@@ -20,6 +20,7 @@ class FlowChart extends StatefulWidget {
     super.key,
     this.onElementPressed,
     this.onGoupPlusPressed,
+    this.onElementDeleted,
     this.onGroupColumnPlusNodePressed,
     this.onPlusNodePressed,
     this.onElementSecondaryTapped,
@@ -87,6 +88,11 @@ class FlowChart extends StatefulWidget {
     Offset position,
     FlowElement destElement,
   )? onGroupColumnPlusNodePressed;
+
+  final void Function(
+    BuildContext context,
+    FlowElement element,
+  )? onElementDeleted;
 
   /// callback for mouse right click event on an element
   final void Function(
@@ -201,8 +207,8 @@ class _FlowChartState extends State<FlowChart> {
         if (object != null) {
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
-          final position = Offset(translation.x, translation.y);
-
+          // final position = Offset(translation.x, translation.y);
+          final position = Offset(0, translation.y);
           widget.dashboard.setDashboardSize(size);
           widget.dashboard.setDashboardPosition(position);
         }
@@ -218,190 +224,188 @@ class _FlowChartState extends State<FlowChart> {
 
     return ClipRect(
       child: OverflowBox(
+          maxWidth: double.infinity,
+          maxHeight: double.infinity,
           child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // 绘制背景网格
-          Positioned.fill(
-            child: GestureDetector(
-              onTapDown: (details) {
-                tapDownPos = details.localPosition;
-              },
-              onSecondaryTapDown: (details) {
-                secondaryTapDownPos = details.localPosition;
-              },
-              onTap: widget.onDashboardTapped == null
-                  ? null
-                  : () => widget.onDashboardTapped!(
-                        gridKey.currentContext!,
-                        tapDownPos,
-                      ),
-              onLongPress: widget.onDashboardLongTapped == null
-                  ? null
-                  : () => widget.onDashboardLongTapped!(
-                        gridKey.currentContext!,
-                        tapDownPos,
-                      ),
-              onSecondaryTap: () {
-                widget.onDashboardSecondaryTapped?.call(
-                  gridKey.currentContext!,
-                  secondaryTapDownPos,
-                );
-              },
-              onSecondaryLongPress: () {
-                widget.onDashboardSecondaryLongTapped?.call(
-                  gridKey.currentContext!,
-                  secondaryTapDownPos,
-                );
-              },
-              onScaleUpdate: (details) {
-                // 缩放画布
-                if (details.scale != 1) {
-                  final factor =
-                      details.scale + widget.dashboard.oldScaleUpdateDelta;
-                  widget.dashboard.setZoomFactor(
-                    factor,
-                    focalPoint: details.focalPoint,
-                  );
-                }
-                // 拖动画布
-                /// 设置网格相对位置
-                // widget.dashboard.setDashboardPosition(
-                //   widget.dashboard.position + details.focalPointDelta,
-                // );
-
-                /// 设置节点的位置
-                widget.dashboard.moveAllElements(details.focalPointDelta);
-
-                widget.dashboard.gridBackgroundParams.offset =
-                    details.focalPointDelta;
-                setState(() {
-                  scaling = true;
-                });
-              },
-              onScaleEnd: (details) {
-                widget.dashboard
-                    .setOldScaleUpdateDelta(widget.dashboard.zoomFactor - 1);
-                setState(() {
-                  scaling = false;
-                });
-              },
-              child: GridBackground(
-                key: gridKey,
-                params: widget.dashboard.gridBackgroundParams,
-              ),
-            ),
-          ),
-          for (int i = 0; i < widget.dashboard.elements.length; i++)
-            // 绘制 elements
-            ElementWidget(
-              key: UniqueKey(),
-              dashboard: widget.dashboard,
-              element: widget.dashboard.elements[i],
-              onElementPressed: (context, position) {
-                if (widget.onElementPressed != null) {
-                  widget.onElementPressed!(
-                    context,
-                    position,
-                    widget.dashboard.elements[i],
-                  );
-                }
-              },
-              onElementOptionsPressed: (context, element) {
-                if (widget.onElementOptionsPressed != null) {
-                  widget.onElementOptionsPressed!(
-                    context,
-                    element,
-                  );
-                }
-              },
-              onGoupPlusPressed: (context, position) {
-                if (widget.onGoupPlusPressed != null) {
-                  widget.onGoupPlusPressed!(
-                    context,
-                    position,
-                    widget.dashboard.elements[i],
-                  );
-                }
-              },
-              onElementSecondaryTapped: widget.onElementSecondaryTapped == null
-                  ? null
-                  : (context, position) => widget.onElementSecondaryTapped!(
-                        context,
-                        position,
-                        widget.dashboard.elements[i],
-                      ),
-              onElementLongPressed: widget.onElementLongPressed == null
-                  ? null
-                  : (context, position) => widget.onElementLongPressed!(
-                        context,
-                        position,
-                        widget.dashboard.elements[i],
-                      ),
-              onElementSecondaryLongTapped:
-                  widget.onElementSecondaryLongTapped == null
+            clipBehavior: Clip.none,
+            children: [
+              // 绘制背景网格
+              Positioned.fill(
+                child: GestureDetector(
+                  onTapDown: (details) {
+                    tapDownPos = details.localPosition;
+                  },
+                  onSecondaryTapDown: (details) {
+                    secondaryTapDownPos = details.localPosition;
+                  },
+                  onTap: widget.onDashboardTapped == null
                       ? null
-                      : (context, position) =>
-                          widget.onElementSecondaryLongTapped!(
+                      : () => widget.onDashboardTapped!(
+                            gridKey.currentContext!,
+                            tapDownPos,
+                          ),
+                  onLongPress: widget.onDashboardLongTapped == null
+                      ? null
+                      : () => widget.onDashboardLongTapped!(
+                            gridKey.currentContext!,
+                            tapDownPos,
+                          ),
+                  onSecondaryTap: () {
+                    widget.onDashboardSecondaryTapped?.call(
+                      gridKey.currentContext!,
+                      secondaryTapDownPos,
+                    );
+                  },
+                  onSecondaryLongPress: () {
+                    widget.onDashboardSecondaryLongTapped?.call(
+                      gridKey.currentContext!,
+                      secondaryTapDownPos,
+                    );
+                  },
+                  onScaleUpdate: (details) {
+                    // 缩放画布
+                    if (details.scale != 1) {
+                      final factor =
+                          details.scale + widget.dashboard.oldScaleUpdateDelta;
+                      widget.dashboard.setZoomFactor(
+                        factor,
+                        focalPoint: details.focalPoint,
+                      );
+                    }
+                    // 拖动画布
+                    /// 设置网格相对位置
+                    // widget.dashboard.setDashboardPosition(
+                    //   widget.dashboard.position + details.focalPointDelta,
+                    // );
+
+                    /// 设置节点的位置
+                    widget.dashboard.moveAllElements(details.focalPointDelta);
+
+                    widget.dashboard.gridBackgroundParams.offset =
+                        details.focalPointDelta;
+                    setState(() {
+                      scaling = true;
+                    });
+                  },
+                  onScaleEnd: (details) {
+                    widget.dashboard.setOldScaleUpdateDelta(
+                        widget.dashboard.zoomFactor - 1);
+                    setState(() {
+                      scaling = false;
+                    });
+                  },
+                  child: GridBackground(
+                    key: gridKey,
+                    params: widget.dashboard.gridBackgroundParams,
+                  ),
+                ),
+              ),
+              for (int i = 0; i < widget.dashboard.elements.length; i++)
+                // 绘制 elements
+                ElementWidget(
+                  key: UniqueKey(),
+                  dashboard: widget.dashboard,
+                  element: widget.dashboard.elements[i],
+                  onElementPressed: (context, position) {
+                    if (widget.onElementPressed != null) {
+                      widget.onElementPressed!(
+                        context,
+                        position,
+                        widget.dashboard.elements[i],
+                      );
+                    }
+                  },
+                  onElementDeleted: (context, element) {
+                    if (widget.onElementDeleted != null) {
+                      widget.onElementDeleted!(
+                        context,
+                        element,
+                      );
+                    }
+                  },
+                  onElementOptionsPressed: (context, element) {
+                    if (widget.onElementOptionsPressed != null) {
+                      widget.onElementOptionsPressed!(
+                        context,
+                        element,
+                      );
+                    }
+                  },
+                  onGoupPlusPressed: (context, position) {
+                    if (widget.onGoupPlusPressed != null) {
+                      widget.onGoupPlusPressed!(
+                        context,
+                        position,
+                        widget.dashboard.elements[i],
+                      );
+                    }
+                  },
+                  onElementSecondaryTapped: widget.onElementSecondaryTapped ==
+                          null
+                      ? null
+                      : (context, position) => widget.onElementSecondaryTapped!(
                             context,
                             position,
                             widget.dashboard.elements[i],
                           ),
-              onHandlerPressed: widget.onHandlerPressed == null
-                  ? null
-                  : (context, position, handler, element) => widget
-                      .onHandlerPressed!(context, position, handler, element),
-              onHandlerSecondaryTapped: widget.onHandlerSecondaryTapped == null
-                  ? null
-                  : (context, position, handler, element) =>
-                      widget.onHandlerSecondaryTapped!(
-                        context,
-                        position,
-                        handler,
-                        element,
-                      ),
-              onHandlerLongPressed: widget.onHandlerLongPressed == null
-                  ? null
-                  : (context, position, handler, element) =>
-                      widget.onHandlerLongPressed!(
-                        context,
-                        position,
-                        handler,
-                        element,
-                      ),
-              onHandlerSecondaryLongTapped:
-                  widget.onHandlerSecondaryLongTapped == null
+                  onElementLongPressed: widget.onElementLongPressed == null
+                      ? null
+                      : (context, position) => widget.onElementLongPressed!(
+                            context,
+                            position,
+                            widget.dashboard.elements[i],
+                          ),
+                  onElementSecondaryLongTapped:
+                      widget.onElementSecondaryLongTapped == null
+                          ? null
+                          : (context, position) =>
+                              widget.onElementSecondaryLongTapped!(
+                                context,
+                                position,
+                                widget.dashboard.elements[i],
+                              ),
+                  onHandlerPressed: widget.onHandlerPressed == null
                       ? null
                       : (context, position, handler, element) =>
-                          widget.onHandlerSecondaryLongTapped!(
+                          widget.onHandlerPressed!(
+                              context, position, handler, element),
+                  onHandlerSecondaryTapped:
+                      widget.onHandlerSecondaryTapped == null
+                          ? null
+                          : (context, position, handler, element) =>
+                              widget.onHandlerSecondaryTapped!(
+                                context,
+                                position,
+                                handler,
+                                element,
+                              ),
+                  onHandlerLongPressed: widget.onHandlerLongPressed == null
+                      ? null
+                      : (context, position, handler, element) =>
+                          widget.onHandlerLongPressed!(
                             context,
                             position,
                             handler,
                             element,
                           ),
-            ),
-          // 合并遍历
-          for (int i = 0; i < widget.dashboard.elements.length; i++) ...[
-            for (int n = 0;
-                n < widget.dashboard.elements[i].next.length;
-                n++) ...[
-              // 绘制连线
-              if (widget.dashboard.elements[i].next[n] != null)
-                DrawArrow(
-                  dashboard: widget.dashboard,
-                  arrowParams: widget.dashboard.elements[i].next[n].arrowParams,
-                  pivots: widget.dashboard.elements[i].next[n].pivots,
-                  key: UniqueKey(),
-                  srcElement: widget.dashboard.elements[i],
-                  destElement: widget
-                      .dashboard.elements[widget.dashboard.findElementIndexById(
-                    widget.dashboard.elements[i].next[n].destElementId,
-                  )],
-                  scaling: scaling,
+                  onHandlerSecondaryLongTapped:
+                      widget.onHandlerSecondaryLongTapped == null
+                          ? null
+                          : (context, position, handler, element) =>
+                              widget.onHandlerSecondaryLongTapped!(
+                                context,
+                                position,
+                                handler,
+                                element,
+                              ),
                 ),
-              // 绘制连线之间的加号
-              if (!scaling && widget.dashboard.elements[i].next[n] != null)
-                DrawPlus(
+              // 合并遍历
+              for (int i = 0; i < widget.dashboard.elements.length; i++) ...[
+                for (int n = 0;
+                    n < widget.dashboard.elements[i].next.length;
+                    n++) ...[
+                  // 绘制连线
+                  DrawArrow(
                     dashboard: widget.dashboard,
                     arrowParams:
                         widget.dashboard.elements[i].next[n].arrowParams,
@@ -412,45 +416,57 @@ class _FlowChartState extends State<FlowChart> {
                         .elements[widget.dashboard.findElementIndexById(
                       widget.dashboard.elements[i].next[n].destElementId,
                     )],
-                    onPlusNodePressed: (context, position) {
-                      if (widget.onPlusNodePressed != null) {
-                        widget.onPlusNodePressed!(
-                            context,
-                            position,
-                            widget.dashboard.elements[i],
-                            widget.dashboard
-                                .elements[widget.dashboard.findElementIndexById(
-                              widget
-                                  .dashboard.elements[i].next[n].destElementId,
-                            )]);
-                      }
-                    }),
+                    scaling: scaling,
+                  ),
+                  // 绘制连线之间的加号
+                  if (!scaling)
+                    DrawPlus(
+                        dashboard: widget.dashboard,
+                        arrowParams:
+                            widget.dashboard.elements[i].next[n].arrowParams,
+                        pivots: widget.dashboard.elements[i].next[n].pivots,
+                        key: UniqueKey(),
+                        srcElement: widget.dashboard.elements[i],
+                        destElement: widget.dashboard
+                            .elements[widget.dashboard.findElementIndexById(
+                          widget.dashboard.elements[i].next[n].destElementId,
+                        )],
+                        onPlusNodePressed: (context, position) {
+                          if (widget.onPlusNodePressed != null) {
+                            widget.onPlusNodePressed!(
+                                context,
+                                position,
+                                widget.dashboard.elements[i],
+                                widget.dashboard.elements[
+                                    widget.dashboard.findElementIndexById(
+                                  widget.dashboard.elements[i].next[n]
+                                      .destElementId,
+                                )]);
+                          }
+                        }),
+                ],
+              ],
+              // 绘制组节点每一列最下面的加号
+              if (!scaling)
+                for (var groupLayoutData
+                    in widget.dashboard.allGroupsLayoutData.values)
+                  for (var columnElements in groupLayoutData.columnsLayoutData)
+                    DrawGroupColumnPlus(
+                        dashboard: widget.dashboard,
+                        key: UniqueKey(),
+                        srcElement: columnElements.last,
+                        onGroupColumnPlusNodePressed: (context, position) {
+                          if (widget.onGroupColumnPlusNodePressed != null) {
+                            widget.onGroupColumnPlusNodePressed!(
+                                context, position, columnElements.last);
+                          }
+                        }),
+              // 绘制用户正在连接时的预览线
+              DrawingArrowWidget(
+                  style: widget.dashboard.defaultArrowStyle,
+                  dashboard: widget.dashboard),
             ],
-          ],
-          // 绘制组节点每一列最下面的加号
-          if (!scaling)
-            for (var groupLayoutData
-                in widget.dashboard.allGroupsLayoutData.values)
-              for (var columnElements in groupLayoutData.columnsLayoutData)
-                if (columnElements.isNotEmpty && columnElements.last != null)
-                  DrawGroupColumnPlus(
-                      dashboard: widget.dashboard,
-                      key: UniqueKey(),
-                      srcElement: columnElements.last,
-                      onGroupColumnPlusNodePressed: (context, position) {
-                        if (widget.onGroupColumnPlusNodePressed != null) {
-                          widget.onGroupColumnPlusNodePressed!(
-                              context, position, columnElements.last);
-                        }
-                      })
-                else
-                  SizedBox(),
-          // 绘制用户正在连接时的预览线
-          // DrawingArrowWidget(
-          //     style: widget.dashboard.defaultArrowStyle,
-          //     dashboard: widget.dashboard),
-        ],
-      )),
+          )),
     );
   }
 }

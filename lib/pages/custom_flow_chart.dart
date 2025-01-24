@@ -39,6 +39,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
       _initStartElements();
       setState(() {
         jsonData = dashboard.toJson();
+        dashboard.setAllElementsDraggable(false);
       });
     });
     dashboard.addListener(_onDashboardJsonChanged);
@@ -155,6 +156,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                         constraints: BoxConstraints.expand(),
                         child: FlowChart(
                             dashboard: dashboard,
+                            onElementDeleted: (context, element) {},
                             onPlusNodePressed: (context, position,
                                 sourceElement, destElement) {
                               _displayPlusElementMenu(

@@ -25,6 +25,7 @@ class ElementWidget extends StatefulWidget {
     required this.element,
     super.key,
     this.onElementPressed,
+    this.onElementDeleted,
     this.onElementOptionsPressed,
     this.onGoupPlusPressed,
     this.onElementSecondaryTapped,
@@ -44,6 +45,9 @@ class ElementWidget extends StatefulWidget {
 
   ///
   final void Function(BuildContext context, Offset position)? onElementPressed;
+
+  final void Function(BuildContext context, FlowElement element)?
+      onElementDeleted;
 
   final void Function(BuildContext context, FlowElement element)?
       onElementOptionsPressed;
@@ -141,6 +145,11 @@ class _ElementWidgetState extends State<ElementWidget> {
         element = TaskWidget(
             dashboard: widget.dashboard,
             element: widget.element,
+            onElementDeleted: (element) {
+              if (widget.onElementDeleted != null) {
+                widget.onElementDeleted!(context, element);
+              }
+            },
             onElementOptionsPressed: (element) {
               if (widget.onElementOptionsPressed != null) {
                 widget.onElementOptionsPressed!(context, element);
