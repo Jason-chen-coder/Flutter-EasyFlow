@@ -207,8 +207,7 @@ class _FlowChartState extends State<FlowChart> {
         if (object != null) {
           final translation = object.getTransformTo(null).getTranslation();
           final size = object.semanticBounds.size;
-          // final position = Offset(translation.x, translation.y);
-          final position = Offset(0, translation.y);
+          final position = Offset(translation.x, translation.y);
           widget.dashboard.setDashboardSize(size);
           widget.dashboard.setDashboardPosition(position);
         }
