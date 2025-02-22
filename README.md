@@ -11,7 +11,7 @@ Here are some of the key features of `flutter_easy_flow` in action:
 - **Real-time Data Rendering**: Automatically render flow diagrams based on real-time data.
 - **Real-time Data Viewing**: View the underlying data of flow diagrams in real-time.
 
-![Screen Recording](screen_recording.gif)
+// ![Screen Recording](screen_recording.gif)
 
 ## 🛠️ Installation
 
