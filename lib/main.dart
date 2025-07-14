@@ -3,9 +3,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_flow/pages/custom_flow_chart.dart';
 import 'package:flutter_easy_flow/pages/default_flow_chart.dart';
+import 'package:flutter_easy_flow/services/theme_service.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeService(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,22 +21,17 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Flow',
-      theme: ThemeData(
-        hintColor: Colors.orange,
-        chipTheme: ChipThemeData(
-          backgroundColor: Colors.blueAccent, // 设置ActionChip的背景色
-          labelStyle: TextStyle(color: Colors.white), // 设置ActionChip的文本样式
-        ),
-        listTileTheme: ListTileThemeData(
-          selectedTileColor: Colors.blue[50],
-          selectedColor: Colors.blue,
-        ),
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue),
-      ),
-      home: const MyHomePage(),
+    return Consumer<ThemeService>(
+      builder: (context, themeService, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Flutter Flow',
+          theme: ThemeService.lightTheme,
+          darkTheme: ThemeService.darkTheme,
+          themeMode: themeService.themeMode,
+          home: const MyHomePage(),
+        );
+      },
     );
   }
 }
@@ -60,6 +62,19 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
+        actions: [
+          Consumer<ThemeService>(
+            builder: (context, themeService, child) {
+              return IconButton(
+                icon: Icon(
+                  themeService.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                onPressed: () => themeService.toggleTheme(),
+                tooltip: themeService.isDarkMode ? '切换到浅色主题' : '切换到深色主题',
+              );
+            },
+          ),
+        ],
       ),
       // drawer: Drawer(
       //   child: ListView(

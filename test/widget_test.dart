@@ -7,24 +7,47 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flutter_easy_flow/main.dart';
+import 'package:flutter_easy_flow/services/theme_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Theme switching test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeService(),
+        child: const MyApp(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Verify that the app starts with light theme
+    final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+    expect(materialApp.themeMode, ThemeMode.light);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // Find and tap the theme toggle button
+    final themeToggleButton = find.byIcon(Icons.dark_mode);
+    expect(themeToggleButton, findsOneWidget);
+    
+    await tester.tap(themeToggleButton);
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Verify the icon changed to light mode icon (indicating dark theme is active)
+    expect(find.byIcon(Icons.light_mode), findsOneWidget);
+  });
+
+  testWidgets('App title and navigation test', (WidgetTester tester) async {
+    // Build our app and trigger a frame.
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeService(),
+        child: const MyApp(),
+      ),
+    );
+
+    // Verify that the app title shows correctly
+    expect(find.text('Flutter-EasyFlow'), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
   });
 }
