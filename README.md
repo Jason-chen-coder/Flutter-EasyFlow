@@ -2,6 +2,21 @@
 
 `flutter_easy_flow` is a Flutter project designed to simplify the process of creating and managing flow diagrams. 
 
+## 你可以做什么 / What Can You Do
+
+Flutter-EasyFlow 提供了强大的流程图创建和管理功能。详细的功能介绍请查看：
+
+📖 **[完整功能指南 / Complete Capabilities Guide](CAPABILITIES.md)**
+
+在应用内，点击右上角的 ❓ 帮助按钮也可以查看详细的功能介绍。
+
+### 核心功能概览 / Core Features Overview
+- **多种节点类型** - 矩形、菱形、椭圆、六边形等专业流程图元素
+- **智能连接** - 拖拽式节点连接，支持各种流程关系
+- **实时数据编辑** - 内置 JSON 编辑器，实时预览数据结构
+- **响应式交互** - 缩放、拖拽、多平台支持
+- **分组管理** - 复杂流程图的组织和管理
+
 ## 🚀 Features Showcase
 
 Here are some of the key features of `flutter_easy_flow` in action:

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easy_flow/pages/custom_flow_chart.dart';
 import 'package:flutter_easy_flow/pages/default_flow_chart.dart';
+import 'package:flutter_easy_flow/widgets/help_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -60,6 +61,18 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpWidget()),
+              );
+            },
+            tooltip: '你可以做什么 - What Can You Do',
+          ),
+        ],
       ),
       // drawer: Drawer(
       //   child: ListView(
