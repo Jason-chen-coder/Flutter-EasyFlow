@@ -132,11 +132,11 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                     width: 480,
                     height: double.infinity,
                     decoration: BoxDecoration(
-                      color: Color(0xffffffff),
+                      color: Theme.of(context).cardColor,
                     ),
                     child: Container(
                       width: 480,
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       child: JsonEditor(
                         key: _jsonEditorKey,
                         onChanged: (value) {
@@ -147,6 +147,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                         enableValueEdit: false,
                         enableKeyEdit: false,
                         json: jsonData,
+                        themeColor: Theme.of(context).primaryColor,
                       ),
                     )),
                 Expanded(
@@ -192,7 +193,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  backgroundColor: Color(0xFFffffff),
+                                  backgroundColor: Theme.of(context).cardColor,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5),
                                   ),
@@ -203,7 +204,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                                 },
                                 child: Icon(
                                   Icons.cleaning_services_outlined,
-                                  color: const Color(0xFF8D8C8D),
+                                  color: Theme.of(context).iconTheme.color,
                                   size: 20,
                                 ),
                               ),
@@ -217,7 +218,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  backgroundColor: Color(0xFFffffff),
+                                  backgroundColor: Theme.of(context).cardColor,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5),
                                   ),
@@ -226,9 +227,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                                   dashboard.setZoomFactor(
                                       1.5 * dashboard.zoomFactor);
                                 },
-                                child: const Icon(
+                                child: Icon(
                                   Icons.add,
-                                  color: Color(0xFF8D8C8D),
+                                  color: Theme.of(context).iconTheme.color,
                                   size: 20,
                                 ),
                               ),
@@ -242,7 +243,7 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  backgroundColor: Color(0xFFffffff),
+                                  backgroundColor: Theme.of(context).cardColor,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5),
                                   ),
@@ -251,9 +252,9 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                                   dashboard.setZoomFactor(
                                       dashboard.zoomFactor / 1.5);
                                 },
-                                child: const Icon(
+                                child: Icon(
                                   Icons.remove,
-                                  color: Color(0xFF8D8C8D),
+                                  color: Theme.of(context).iconTheme.color,
                                   size: 20,
                                 ),
                               ),
@@ -267,15 +268,15 @@ class _CustomFlowChartState extends State<CustomFlowChart> {
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   padding: EdgeInsets.zero,
-                                  backgroundColor: Color(0xFFffffff),
+                                  backgroundColor: Theme.of(context).cardColor,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(5),
                                   ),
                                 ),
                                 onPressed: dashboard.setFullView,
-                                child: const Icon(
+                                child: Icon(
                                   Icons.fullscreen,
-                                  color: Color(0xFF8D8C8D),
+                                  color: Theme.of(context).iconTheme.color,
                                   size: 20,
                                 ),
                               ),
